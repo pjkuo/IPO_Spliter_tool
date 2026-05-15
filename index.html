@@ -1,0 +1,1208 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>專題系統 IPO 模組分析器</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=Noto+Serif+TC:wght@700;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+  :root{
+    --ink:#21303B; --paper:#FBF7EF; --line:#D8CFBE;
+    --blue:#2B6CB0; --blueBg:#E7F0FA;
+    --orange:#D97215; --orangeBg:#FDEEDE;
+    --green:#2F855A; --greenBg:#E3F3E9;
+    --purple:#7B4FB1; --purpleBg:#F0E8F8;
+    --gold:#CAA23C; --goldBg:#FFF6E0;
+    --red:#C0563F; --redBg:#FDE4DC;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{
+    font-family:"Noto Sans TC",sans-serif;color:var(--ink);
+    line-height:1.55;background:#e9e4d8;padding:18px 12px 60px;
+    background-image:radial-gradient(var(--line) .6px,transparent .6px);
+    background-size:18px 18px;
+  }
+  .wrap{max-width:1080px;margin:0 auto;}
+
+  header{
+    background:var(--paper);border:1.5px solid var(--line);border-radius:14px;
+    padding:16px 22px;margin-bottom:14px;
+    box-shadow:0 4px 14px rgba(33,48,59,.08);
+  }
+  h1{font-family:"Noto Serif TC",serif;font-size:25px;font-weight:900;
+     display:flex;align-items:center;gap:10px;}
+  h1 .icon{font-size:28px;}
+  .sub{font-size:13px;color:#5d6b74;margin-top:3px;}
+  .sub b.b{color:var(--blue);} .sub b.p{color:var(--orange);} .sub b.o{color:var(--green);}
+
+  .card{
+    background:#fff;border:1.5px solid var(--line);border-radius:14px;
+    padding:18px;margin-bottom:14px;
+  }
+  .section-title{
+    font-size:15px;font-weight:900;margin-bottom:9px;
+    display:flex;align-items:center;gap:9px;
+  }
+  .section-title .num{
+    background:var(--purple);color:#fff;width:24px;height:24px;
+    border-radius:50%;display:inline-flex;align-items:center;justify-content:center;
+    font-family:"Noto Serif TC",serif;font-size:13px;
+  }
+  .hint{font-size:12px;color:#5d6b74;margin-bottom:9px;}
+
+  textarea{
+    width:100%;font-family:"JetBrains Mono",monospace;font-size:12.5px;
+    border:1.5px solid var(--line);border-radius:8px;padding:10px 12px;
+    background:#fafaf6;color:var(--ink);resize:vertical;
+    min-height:170px;line-height:1.55;
+  }
+  textarea:focus{outline:none;border-color:var(--purple);background:#fff;}
+
+  .samples{display:flex;gap:7px;flex-wrap:wrap;margin-top:9px;align-items:center;}
+  .samples .lab{font-size:11.5px;color:#5d6b74;}
+  .samples button{
+    background:#fff;border:1px dashed var(--line);color:#5d6b74;
+    font-family:inherit;font-size:11.5px;padding:4px 10px;border-radius:6px;cursor:pointer;
+  }
+  .samples button:hover{border-style:solid;border-color:var(--purple);color:var(--purple);}
+
+  .action-row{display:flex;gap:9px;margin-top:13px;flex-wrap:wrap;}
+  .btn{
+    border:none;font-family:inherit;font-weight:900;font-size:14px;
+    padding:10px 20px;border-radius:8px;cursor:pointer;
+    display:inline-flex;align-items:center;gap:7px;
+    transition:transform .1s,opacity .15s;
+  }
+  .btn:active{transform:translateY(1px);}
+  .btn:disabled{opacity:.5;cursor:not-allowed;}
+  .btn-primary{background:var(--purple);color:#fff;}
+  .btn-primary:hover:not(:disabled){background:#5e3990;}
+  .btn-ghost{background:#fff;border:1.5px solid var(--line);color:var(--ink);
+    font-weight:700;font-size:13px;padding:9px 16px;}
+  .btn-ghost:hover{background:var(--paper);}
+  .btn-secondary{
+    background:#fff;border:1.5px solid var(--purple);color:var(--purple);
+    font-weight:700;font-size:13.5px;padding:9px 17px;text-decoration:none;
+  }
+  .btn-secondary:hover{background:var(--purpleBg);}
+
+  /* Manual mode (Gemini copy-paste workflow) */
+  .manual-mode{
+    margin-top:14px;background:linear-gradient(135deg,var(--purpleBg),#fff);
+    border:1.5px solid var(--purple);border-radius:11px;padding:16px 18px;
+  }
+  .manual-step{margin-bottom:14px;}
+  .manual-step:last-child{margin-bottom:0;}
+  .manual-step-head{
+    display:flex;align-items:center;gap:11px;margin-bottom:8px;
+  }
+  .manual-step-head .step-badge{
+    width:30px;height:30px;border-radius:50%;background:var(--purple);
+    color:#fff;font-weight:900;font-family:"Noto Serif TC",serif;font-size:15px;
+    display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  }
+  .manual-step .step-name{font-weight:900;font-size:14.5px;}
+  .manual-step .step-desc{font-size:11.5px;color:#5d6b74;margin-top:1px;}
+  .manual-mode textarea{min-height:140px;margin-bottom:9px;}
+  #manualPrompt{background:#fff;color:var(--ink);}
+
+  .spinner{
+    width:13px;height:13px;border:2px solid #fff;border-top-color:transparent;
+    border-radius:50%;animation:spin .8s linear infinite;display:inline-block;
+  }
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  .result{display:none;}
+  .result.show{display:block;}
+
+  .project-info{
+    background:linear-gradient(135deg,var(--purpleBg),#fff);
+    border:1.5px solid var(--purple);border-radius:11px;
+    padding:12px 18px;margin-bottom:14px;
+    display:flex;align-items:center;gap:11px;flex-wrap:wrap;
+  }
+  .project-info .badge{
+    background:var(--purple);color:#fff;padding:3px 10px;
+    border-radius:5px;font-size:11px;font-weight:900;letter-spacing:.5px;
+  }
+  .project-info .name{font-weight:900;font-size:15px;flex:1;min-width:200px;}
+  .project-info .desc{font-size:12.5px;color:#5d6b74;}
+
+  /* IPO slide cards */
+  .slide{
+    background:#fff;border:1.5px solid;border-radius:14px;
+    padding:16px 18px;margin-bottom:13px;
+  }
+  .slide.i{border-color:var(--blue);}
+  .slide.p{border-color:var(--orange);}
+  .slide.o{border-color:var(--green);}
+
+  .slide-head{
+    display:flex;align-items:center;gap:11px;
+    padding-bottom:11px;margin-bottom:12px;border-bottom:2px solid;
+  }
+  .slide.i .slide-head{border-color:var(--blueBg);}
+  .slide.p .slide-head{border-color:var(--orangeBg);}
+  .slide.o .slide-head{border-color:var(--greenBg);}
+
+  .mod-num{
+    width:38px;height:38px;border-radius:10px;
+    color:#fff;font-weight:900;
+    font-family:"Noto Serif TC",serif;font-size:20px;
+    display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  }
+  .slide.i .mod-num{background:var(--blue);}
+  .slide.p .mod-num{background:var(--orange);}
+  .slide.o .mod-num{background:var(--green);}
+  .mod-title{font-size:17px;font-weight:900;}
+  .slide.i .mod-title{color:var(--blue);}
+  .slide.p .mod-title{color:var(--orange);}
+  .slide.o .mod-title{color:var(--green);}
+  .mod-sub{font-size:11.5px;color:#5d6b74;margin-top:1px;}
+
+  .compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:11px;}
+  @media (max-width:720px){.compare-grid{grid-template-columns:1fr;}}
+
+  .col{
+    background:#fafaf6;border:1px solid var(--line);border-radius:9px;
+    overflow:hidden;display:flex;flex-direction:column;
+  }
+  .col-head{
+    padding:7px 12px;font-size:11.5px;font-weight:900;
+    display:flex;align-items:center;gap:6px;border-bottom:1px solid var(--line);
+  }
+  .col.before .col-head{background:var(--redBg);color:#7c2d1f;}
+  .col.after .col-head{color:#fff;}
+  .slide.i .col.after .col-head{background:var(--blue);}
+  .slide.p .col.after .col-head{background:var(--orange);}
+  .slide.o .col.after .col-head{background:var(--green);}
+
+  .col-head .copy-btn{
+    margin-left:auto;background:rgba(255,255,255,.25);
+    border:1px solid currentColor;border-radius:5px;
+    padding:2px 8px;font-size:10.5px;cursor:pointer;
+    font-family:inherit;font-weight:700;color:inherit;
+  }
+  .col.before .copy-btn{background:#fff;color:#7c2d1f;}
+  .col-head .copy-btn:hover{opacity:.8;}
+
+  pre{
+    background:#1c2a32;color:#e8edf0;
+    font-family:"JetBrains Mono",monospace;
+    font-size:11.5px;line-height:1.55;padding:10px 13px;
+    overflow-x:auto;white-space:pre;
+    min-height:100px;max-height:240px;flex:1;
+  }
+  pre .k{color:#ffc36b;} pre .s{color:#a8d8a8;}
+  pre .c{color:#8ca4ad;font-style:italic;}
+  pre .n{color:#ffb89c;} pre .b{color:#92c4e8;}
+
+  .improve{
+    background:#fff;padding:8px 12px;border-top:1px solid var(--line);
+  }
+  .improve .lab{font-size:10.5px;font-weight:900;letter-spacing:.5px;
+    color:#5d6b74;margin-bottom:4px;}
+  .improve ul{padding-left:14px;list-style:none;}
+  .improve li{font-size:11.5px;line-height:1.5;padding:1px 0;
+    position:relative;padding-left:14px;}
+  .improve li::before{content:"✓";position:absolute;left:0;font-weight:900;}
+  .slide.i .improve li::before{color:var(--blue);}
+  .slide.p .improve li::before{color:var(--orange);}
+  .slide.o .improve li::before{color:var(--green);}
+
+  .exec{
+    margin-top:11px;background:linear-gradient(135deg,#fafaf6,#fff);
+    border:1.5px solid;border-radius:9px;padding:11px 13px;
+  }
+  .slide.i .exec{border-color:var(--blueBg);}
+  .slide.p .exec{border-color:var(--orangeBg);}
+  .slide.o .exec{border-color:var(--greenBg);}
+
+  .exec-lab{font-size:10.5px;font-weight:900;letter-spacing:.5px;margin-bottom:6px;}
+  .slide.i .exec-lab{color:var(--blue);}
+  .slide.p .exec-lab{color:var(--orange);}
+  .slide.o .exec-lab{color:var(--green);}
+
+  .exec-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;}
+  .exec-grid.single{grid-template-columns:1fr;}
+  @media (max-width:720px){.exec-grid{grid-template-columns:1fr;}}
+
+  .console{
+    background:#1c2a32;color:#a8d8a8;
+    font-family:"JetBrains Mono",monospace;font-size:11.5px;line-height:1.7;
+    border-radius:7px;padding:9px 12px;white-space:pre-wrap;
+    border-left:3px solid #2BB45F;min-height:70px;
+  }
+  .chart-box{background:#fff;border:1px solid var(--line);border-radius:7px;padding:9px;}
+
+  .expla{
+    margin-top:9px;background:var(--goldBg);border:1.5px solid var(--gold);
+    border-radius:8px;padding:8px 12px;font-size:12px;line-height:1.55;
+  }
+  .expla b{color:#7a5a13;}
+
+  /* Download section */
+  .dl-grid{
+    display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:9px;
+  }
+  @media (max-width:640px){.dl-grid{grid-template-columns:1fr;}}
+  .dl-btn{
+    background:linear-gradient(135deg,#fff,var(--paper));
+    border:1.5px solid var(--line);border-radius:11px;
+    padding:13px 15px;cursor:pointer;font-family:inherit;
+    text-align:left;transition:all .15s;
+    display:flex;align-items:center;gap:11px;
+  }
+  .dl-btn:hover{border-color:var(--purple);background:linear-gradient(135deg,#fff,var(--purpleBg));}
+  .dl-btn:disabled{opacity:.5;cursor:not-allowed;}
+  .dl-btn .ic{
+    width:36px;height:36px;border-radius:9px;background:var(--purple);color:#fff;
+    display:flex;align-items:center;justify-content:center;font-size:17px;
+    flex:0 0 auto;
+  }
+  .dl-btn .text .t{font-weight:900;font-size:13.5px;margin-bottom:1px;}
+  .dl-btn .text .d{font-size:11.5px;color:#5d6b74;}
+
+  .err{
+    background:var(--redBg);border:1.5px solid var(--red);color:#7c2d1f;
+    padding:10px 13px;border-radius:8px;font-size:13px;margin-top:11px;
+  }
+
+  .footer-info{
+    background:var(--goldBg);border:1.5px solid var(--gold);border-radius:10px;
+    padding:10px 14px;margin-top:16px;font-size:12px;line-height:1.6;
+  }
+  .footer-info b{color:#a9781b;}
+  .footer-info .hl{background:#FFF3C4;padding:0 2px;font-weight:700;border-bottom:1.5px solid var(--gold);}
+  footer{text-align:center;font-size:11px;color:#8a8576;margin-top:14px;}
+
+  .toast{
+    position:fixed;bottom:30px;left:50%;transform:translateX(-50%);
+    background:var(--ink);color:#fff;padding:11px 22px;border-radius:8px;
+    font-size:13px;font-weight:700;
+    box-shadow:0 8px 24px rgba(0,0,0,.25);
+    opacity:0;pointer-events:none;
+    transition:opacity .25s,transform .25s;z-index:1000;
+  }
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(-8px);}
+
+  @media print{
+    body{background:#fff;padding:0;}
+    .input-section,.dl-section,.footer-info,footer{display:none !important;}
+    .slide{break-after:page;page-break-after:always;border:1.5px solid var(--line);}
+    .slide:last-child{break-after:auto;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <h1><span class="icon">🎯</span>專題系統 IPO 模組分析器</h1>
+    <div class="sub">
+      貼整支專題程式 → AI 自動分割
+      <b class="b">Input 輸入</b> ＋ <b class="p">Process 處理</b> ＋ <b class="o">Output 輸出</b>
+      → 對照展示 → 下載 PDF／圖片／<b>.ipynb 筆記本</b>
+    </div>
+  </header>
+
+  <!-- ===== Input ===== -->
+  <div class="card input-section">
+    <div class="section-title"><span class="num">1</span>貼上你的專題系統程式碼</div>
+    <div class="hint">把目前可執行的整支程式（含輸入、計算、輸出）貼進來，AI 會自動辨識、分割、優化。</div>
+
+    <textarea id="userCode" placeholder="把你的 Python 專題程式碼貼進來..."></textarea>
+
+    <div class="samples">
+      <span class="lab">沒程式碼？試試專題系統範例：</span>
+      <button onclick="loadSample('grade')">學生成績管理</button>
+      <button onclick="loadSample('health')">健康監測</button>
+      <button onclick="loadSample('library')">圖書借閱統計</button>
+      <button onclick="loadSample('electric')">電費試算</button>
+    </div>
+
+    <div class="action-row">
+      <button class="btn btn-primary" id="goBtn" onclick="analyze()">
+        <span id="goLabel">🤖 自動分析（在 Claude.ai 內）</span>
+      </button>
+      <button class="btn btn-secondary" id="manualBtn" onclick="enterManualMode()">
+        📋 改用 Gemini 手動分析
+      </button>
+      <button class="btn btn-ghost" onclick="clearAll()">清空</button>
+    </div>
+
+    <div id="errorBox"></div>
+
+    <!-- ===== Manual mode (works without API) ===== -->
+    <div id="manualMode" class="manual-mode" style="display:none">
+      <div class="manual-step">
+        <div class="manual-step-head">
+          <span class="step-badge">A</span>
+          <div>
+            <div class="step-name">複製下方提示語</div>
+            <div class="step-desc">已自動把你的程式碼包進指令</div>
+          </div>
+        </div>
+        <textarea id="manualPrompt" readonly></textarea>
+        <div class="action-row">
+          <button class="btn btn-primary" onclick="copyManualPrompt()">📋 複製提示語</button>
+          <a class="btn btn-secondary" href="https://gemini.google.com/app" target="_blank" rel="noopener">🔗 開啟 Gemini（新分頁）</a>
+        </div>
+      </div>
+
+      <div class="manual-step">
+        <div class="manual-step-head">
+          <span class="step-badge">B</span>
+          <div>
+            <div class="step-name">把 Gemini 的回應貼回這裡</div>
+            <div class="step-desc">整段複製，從 [META] 開始貼到 [/OUTPUT_CHART_VALUES] 結束</div>
+          </div>
+        </div>
+        <textarea id="manualResponse" placeholder="把 Gemini 回覆的完整內容貼進來..."></textarea>
+        <div class="action-row">
+          <button class="btn btn-primary" onclick="parseManualResponse()">✨ 解析並產出 IPO 對照</button>
+          <button class="btn btn-ghost" onclick="exitManualMode()">取消</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== Result ===== -->
+  <div class="result" id="result">
+
+    <div class="project-info" id="projectInfo"></div>
+
+    <div id="slidesContainer"></div>
+
+    <!-- Download buttons -->
+    <div class="card dl-section">
+      <div class="section-title"><span class="num">2</span>下載 ─ 用於專題報告與簡報</div>
+      <div class="hint">產生的對照頁面可下載為 PDF 簡報、圖片、Jupyter 筆記本，或直接列印。</div>
+
+      <div class="dl-grid">
+        <button class="dl-btn" onclick="downloadPDF()" id="pdfBtn">
+          <div class="ic">📑</div>
+          <div class="text">
+            <div class="t">下載 PDF 簡報</div>
+            <div class="d">3 頁對照頁，可放入專題報告</div>
+          </div>
+        </button>
+        <button class="dl-btn" onclick="downloadImages()" id="imgBtn">
+          <div class="ic">🖼️</div>
+          <div class="text">
+            <div class="t">下載卡片圖片</div>
+            <div class="d">3 張 PNG 圖片，貼入 PowerPoint</div>
+          </div>
+        </button>
+        <button class="dl-btn" onclick="downloadIpynb()" id="ipynbBtn">
+          <div class="ic">📓</div>
+          <div class="text">
+            <div class="t">下載 .ipynb 筆記本</div>
+            <div class="d">可直接拖進 Google Colab 開啟執行</div>
+          </div>
+        </button>
+        <button class="dl-btn" onclick="window.print()">
+          <div class="ic">🖨️</div>
+          <div class="text">
+            <div class="t">列印對照頁</div>
+            <div class="d">用瀏覽器列印或另存 PDF</div>
+          </div>
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="footer-info">
+    ⚠️ <b>使用提醒：</b>下載的 .ipynb 拖到 <span class="hl">Google Colab</span> 即可開啟。Output 段已內含<span class="hl">中文字型起手式</span>，可直接執行不會出現方框字。
+  </div>
+  <footer>專題系統 IPO 模組分析器 ─ 讓你的專題更好用、更好懂、更好看</footer>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ============ Samples ============
+const SAMPLES = {
+  grade: `# 學生成績管理系統
+math = 85
+english = 72
+science = 90
+chinese = 78
+social = 82
+
+total = math + english + science + chinese + social
+average = total / 5
+
+if average >= 90:
+    grade = 'A'
+elif average >= 80:
+    grade = 'B'
+elif average >= 70:
+    grade = 'C'
+elif average >= 60:
+    grade = 'D'
+else:
+    grade = 'F'
+
+print('學生成績單')
+print('數學:', math)
+print('英文:', english)
+print('自然:', science)
+print('國文:', chinese)
+print('社會:', social)
+print('總分:', total)
+print('平均:', round(average, 1))
+print('等級:', grade)`,
+
+  health: `# 健康監測系統
+name = '小明'
+height = 170
+weight = 65
+exercise_days = 3
+water_intake = 1.5
+
+bmi = weight / ((height/100) ** 2)
+
+if bmi < 18.5:
+    status = '過輕'
+elif bmi < 24:
+    status = '正常'
+elif bmi < 27:
+    status = '過重'
+else:
+    status = '肥胖'
+
+if exercise_days >= 5:
+    eval_ex = '良好'
+elif exercise_days >= 3:
+    eval_ex = '適中'
+else:
+    eval_ex = '不足'
+
+if water_intake >= 2.0:
+    eval_w = '充足'
+elif water_intake >= 1.2:
+    eval_w = '適中'
+else:
+    eval_w = '不足'
+
+print('健康監測報告')
+print('姓名:', name)
+print('BMI:', round(bmi, 1))
+print('體位:', status)
+print('每週運動:', exercise_days, '天，評估:', eval_ex)
+print('每日飲水:', water_intake, '升，評估:', eval_w)`,
+
+  library: `# 圖書借閱統計系統
+fiction = 45
+science = 30
+history = 25
+language = 38
+art = 18
+total = fiction + science + history + language + art
+
+print('圖書借閱統計')
+print('文學類:', fiction)
+print('科學類:', science)
+print('歷史類:', history)
+print('語言類:', language)
+print('藝術類:', art)
+print('總借閱量:', total)
+
+if fiction > 40:
+    print('文學類最熱門')
+if science > 30:
+    print('科學類也很熱門')`,
+
+  electric: `# 電費試算系統
+usage = 350
+season = '夏季'
+
+if season == '夏季':
+    if usage <= 120:
+        rate = 1.63
+    elif usage <= 330:
+        rate = 2.38
+    elif usage <= 500:
+        rate = 3.52
+    else:
+        rate = 4.80
+else:
+    if usage <= 120:
+        rate = 1.63
+    elif usage <= 330:
+        rate = 2.10
+    elif usage <= 500:
+        rate = 2.89
+    else:
+        rate = 3.94
+
+fee = usage * rate
+
+print('電費試算')
+print('用電度數:', usage)
+print('季節:', season)
+print('每度單價:', rate)
+print('應繳電費:', round(fee), '元')`
+};
+
+function loadSample(key){ document.getElementById('userCode').value = SAMPLES[key]; }
+
+function clearAll(){
+  document.getElementById('userCode').value = '';
+  document.getElementById('result').classList.remove('show');
+  document.getElementById('errorBox').innerHTML = '';
+}
+
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2000);
+}
+
+// ============ Syntax highlight ============
+function escapeHtml(s){ return (s||'').replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
+function highlight(code){
+  let h = escapeHtml(code || '');
+  h = h.replace(/(#[^\n]*)/g, '\x00C$1\x00');
+  h = h.replace(/('[^'\n]*'|"[^"\n]*")/g, '\x00S$1\x00');
+  h = h.replace(/\b(\d+\.?\d*)\b/g, '\x00N$1\x00');
+  h = h.replace(/\b(import|from|def|return|if|elif|else|for|in|while|with|as|class|True|False|None|and|or|not|lambda|pass|break|continue|try|except)\b/g, '\x00K$1\x00');
+  h = h.replace(/\b(print|len|range|str|int|float|list|dict|tuple|set|round|min|max|sum|sorted|zip|enumerate|input|type|map|filter)\b/g, '\x00B$1\x00');
+  return h.replace(/\x00C([^\x00]+)\x00/g, '<span class="c">$1</span>')
+          .replace(/\x00S([^\x00]+)\x00/g, '<span class="s">$1</span>')
+          .replace(/\x00N([^\x00]+)\x00/g, '<span class="n">$1</span>')
+          .replace(/\x00K([^\x00]+)\x00/g, '<span class="k">$1</span>')
+          .replace(/\x00B([^\x00]+)\x00/g, '<span class="b">$1</span>');
+}
+
+// ============ Copy code ============
+function copyCode(btn, text){
+  navigator.clipboard.writeText(text);
+  const orig = btn.textContent;
+  btn.textContent = '已複製!';
+  setTimeout(()=>{ btn.textContent = orig; }, 1200);
+}
+
+// ============ AI Analysis ============
+let chartInstance = null;
+let lastAnalysis = null;
+
+const SYSTEM_PROMPT = `你是大一非資訊系專題程式優化助手。學生會貼上他們可執行的 Python 專題系統程式碼。請完成三件事：
+
+(1) 辨識專題類型（例：學生成績管理系統、健康監測系統）
+(2) 將原始程式碼按 IPO 三模組分割：Input（輸入）/ Process（處理）/ Output（輸出）
+(3) 對每個模組產出優化版本與模擬執行結果
+
+**回應格式：請嚴格使用下列分隔標籤格式，不要使用 JSON、不要加 markdown 程式碼框、不要任何前言後語。標籤名稱必須完全相同（大寫加底線）。所有程式碼直接寫，不需要跳脫換行或引號**：
+
+[META]
+PROJECT_TYPE=識別出的專題系統類型（10 字內）
+PROJECT_DESC=用一句話（30 字內）說明此系統做什麼
+[/META]
+
+[INPUT_EXPLANATION]
+用一句話說明 Input 模組做什麼與改進（40 字內）
+[/INPUT_EXPLANATION]
+
+[INPUT_IMPROVEMENTS]
+改進點1（10字內）
+改進點2
+改進點3
+[/INPUT_IMPROVEMENTS]
+
+[INPUT_ORIGINAL]
+從原始程式碼擷取的 Input 段（變數定義、賦值），保持原樣
+[/INPUT_ORIGINAL]
+
+[INPUT_OPTIMIZED]
+改用 ipywidgets 的優化版完整程式碼。包含 import ipywidgets as widgets、from IPython.display import display, clear_output、Text/IntSlider/FloatSlider/Dropdown 配置、防呆、Button 觸發、繁中 description
+[/INPUT_OPTIMIZED]
+
+[INPUT_EXEC]
+模擬執行時收集到的範例資料（4-6 行）
+[/INPUT_EXEC]
+
+[PROCESS_EXPLANATION]
+用一句話說明 Process 模組做什麼與改進（40 字內）
+[/PROCESS_EXPLANATION]
+
+[PROCESS_IMPROVEMENTS]
+改進點1
+改進點2
+改進點3
+[/PROCESS_IMPROVEMENTS]
+
+[PROCESS_ORIGINAL]
+從原始程式碼擷取的 Process 段（計算、條件判斷）
+[/PROCESS_ORIGINAL]
+
+[PROCESS_OPTIMIZED]
+改寫成 function 模組化的完整程式碼。拆 2-3 個有意義 function，每個有 docstring（三引號繁中說明），加繁中行內註解
+[/PROCESS_OPTIMIZED]
+
+[PROCESS_EXEC]
+模擬執行時的計算過程與中間結果（3-5 行）
+[/PROCESS_EXEC]
+
+[OUTPUT_EXPLANATION]
+用一句話說明 Output 模組做什麼與改進（40 字內）
+[/OUTPUT_EXPLANATION]
+
+[OUTPUT_IMPROVEMENTS]
+改進點1
+改進點2
+改進點3
+[/OUTPUT_IMPROVEMENTS]
+
+[OUTPUT_ORIGINAL]
+從原始程式碼擷取的 Output 段（print 敘述）
+[/OUTPUT_ORIGINAL]
+
+[OUTPUT_OPTIMIZED]
+改用 matplotlib 視覺化的完整程式碼。開頭必須含中文字型設定：
+!apt-get -qq install fonts-noto-cjk
+import matplotlib.pyplot as plt
+from matplotlib import font_manager
+font_manager.fontManager.addfont('/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc')
+plt.rcParams['font.sans-serif'] = ['Noto Sans CJK TC']
+plt.rcParams['axes.unicode_minus'] = False
+之後加中文標題、座標軸、數值標籤
+[/OUTPUT_OPTIMIZED]
+
+[OUTPUT_EXEC]
+模擬執行時印出的文字結果（2-4 行）
+[/OUTPUT_EXEC]
+
+[OUTPUT_CHART_TYPE]
+bar 或 pie 或 line（依資料特性選一個）
+[/OUTPUT_CHART_TYPE]
+
+[OUTPUT_CHART_TITLE]
+繁體中文圖表標題
+[/OUTPUT_CHART_TITLE]
+
+[OUTPUT_CHART_X_LABEL]
+X 軸標籤（圓餅圖可空）
+[/OUTPUT_CHART_X_LABEL]
+
+[OUTPUT_CHART_Y_LABEL]
+Y 軸標籤（圓餅圖可空）
+[/OUTPUT_CHART_Y_LABEL]
+
+[OUTPUT_CHART_LABELS]
+每行一個中文標籤（3-7 個）
+[/OUTPUT_CHART_LABELS]
+
+[OUTPUT_CHART_VALUES]
+每行一個數值（對應上方標籤順序）
+[/OUTPUT_CHART_VALUES]
+
+要求：improvements 各模組 3 點；optimized 程式碼必須完整可執行；所有中文標籤用繁體中文；圖表類型依資料特性選擇（比較→bar、比例→pie、趨勢→line）。**標籤名稱必須完全一致**`;
+
+async function analyze(){
+  const code = document.getElementById('userCode').value.trim();
+  if (!code){ alert('請先貼上你的專題程式碼'); return; }
+
+  const btn = document.getElementById('goBtn');
+  const lbl = document.getElementById('goLabel');
+  btn.disabled = true;
+  lbl.innerHTML = '<span class="spinner"></span> AI 分析中…請稍候 10-20 秒';
+  document.getElementById('errorBox').innerHTML = '';
+  document.getElementById('result').classList.remove('show');
+  document.getElementById('manualMode').style.display = 'none';
+
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 6000,
+        system: SYSTEM_PROMPT,
+        messages: [{
+          role: 'user',
+          content: `學生的專題程式碼：\n\`\`\`python\n${code}\n\`\`\`\n\n請依照系統訊息的分隔標籤格式生成回應。`
+        }]
+      })
+    });
+    const data = await resp.json();
+    if (data.error) throw new Error(data.error.message || 'API error');
+
+    const raw = (data.content || []).filter(b => b.type === 'text').map(b => b.text).join('').trim();
+    const parsed = parseAIResponse(raw);
+
+    if (!parsed.modules.input.optimized || !parsed.modules.process.optimized || !parsed.modules.output.optimized){
+      console.error('Raw AI response:', raw);
+      throw new Error('AI 回應內容不完整，請改用手動模式');
+    }
+
+    lastAnalysis = parsed;
+    renderResult(parsed);
+  } catch (err){
+    const msg = (err && err.message) || String(err);
+    // Detect "Failed to fetch" / CORS / network errors → auto switch to manual mode
+    const isNetworkError = msg.includes('Failed to fetch') || msg.includes('NetworkError') ||
+                           msg.includes('CORS') || err instanceof TypeError;
+    if (isNetworkError){
+      document.getElementById('errorBox').innerHTML =
+        `<div class="err">ℹ️ 偵測到此環境無法直接呼叫 AI（${escapeHtml(msg)}）。已為你切換到 <b>Gemini 手動分析模式</b>。</div>`;
+      enterManualMode();
+    } else {
+      document.getElementById('errorBox').innerHTML =
+        `<div class="err">⚠ 發生錯誤：${escapeHtml(msg)}。請改用下方「📋 改用 Gemini 手動分析」按鈕。</div>`;
+    }
+  } finally {
+    btn.disabled = false;
+    lbl.textContent = '🤖 自動分析（在 Claude.ai 內）';
+  }
+}
+
+// ============ Manual mode (works without API) ============
+function buildManualPrompt(code){
+  return `以下是專題程式 IPO 模組分析任務。請嚴格依照分隔標籤格式回應，**不要回傳 JSON、不要 markdown 程式碼框、不要前言後語**：
+
+${SYSTEM_PROMPT}
+
+──────────────
+學生的專題程式碼：
+\`\`\`python
+${code}
+\`\`\`
+──────────────
+
+請依照上方系統訊息的分隔標籤格式（[META] / [INPUT_*] / [PROCESS_*] / [OUTPUT_*] / [OUTPUT_CHART_*]）生成完整回應。`;
+}
+
+function enterManualMode(){
+  const code = document.getElementById('userCode').value.trim();
+  if (!code){ alert('請先貼上你的專題程式碼'); return; }
+  document.getElementById('manualPrompt').value = buildManualPrompt(code);
+  document.getElementById('manualResponse').value = '';
+  document.getElementById('manualMode').style.display = 'block';
+  setTimeout(()=>document.getElementById('manualMode').scrollIntoView({behavior:'smooth',block:'start'}), 100);
+}
+
+function exitManualMode(){
+  document.getElementById('manualMode').style.display = 'none';
+  document.getElementById('errorBox').innerHTML = '';
+}
+
+function copyManualPrompt(){
+  const text = document.getElementById('manualPrompt').value;
+  navigator.clipboard.writeText(text).then(()=>{
+    showToast('✅ 提示語已複製，請貼到 Gemini');
+  }).catch(()=>{
+    // Fallback for older browsers
+    document.getElementById('manualPrompt').select();
+    document.execCommand('copy');
+    showToast('✅ 提示語已複製');
+  });
+}
+
+function parseManualResponse(){
+  const raw = document.getElementById('manualResponse').value.trim();
+  if (!raw){
+    alert('請先把 Gemini 的回應貼進來');
+    return;
+  }
+  try {
+    const parsed = parseAIResponse(raw);
+    if (!parsed.modules.input.optimized || !parsed.modules.process.optimized || !parsed.modules.output.optimized){
+      throw new Error('回應內容不完整，請確認你貼的是 Gemini 的完整回覆（從 [META] 開始到 [/OUTPUT_CHART_VALUES] 結束）');
+    }
+    lastAnalysis = parsed;
+    renderResult(parsed);
+    showToast('✅ 解析成功');
+    document.getElementById('manualMode').style.display = 'none';
+    document.getElementById('errorBox').innerHTML = '';
+  } catch (err){
+    document.getElementById('errorBox').innerHTML =
+      `<div class="err">⚠ 解析失敗：${escapeHtml(err.message || String(err))}</div>`;
+  }
+}
+
+// ============ Delimiter-based parser ============
+function extractSection(text, marker){
+  // Match [MARKER]\n...\n[/MARKER]  (tolerant of trailing whitespace)
+  const re = new RegExp(`\\[${marker}\\]\\s*\\r?\\n([\\s\\S]*?)\\r?\\n\\s*\\[\\/${marker}\\]`, 'i');
+  const m = text.match(re);
+  return m ? m[1].trim() : '';
+}
+
+function parseList(text){
+  return text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+}
+
+function parseNumberList(text){
+  return parseList(text).map(v => {
+    const n = parseFloat(v.replace(/[,，]/g, ''));
+    return isNaN(n) ? 0 : n;
+  });
+}
+
+function parseAIResponse(raw){
+  let text = (raw || '').trim();
+  // Strip optional outer markdown fences
+  text = text.replace(/^```[a-z]*\s*\n?/i, '').replace(/\n?\s*```\s*$/i, '');
+  // Skip preamble: find first [META]
+  const metaStart = text.indexOf('[META]');
+  if (metaStart > 0) text = text.slice(metaStart);
+
+  // Parse META key=value pairs
+  const meta = {};
+  const metaContent = extractSection(text, 'META');
+  metaContent.split('\n').forEach(line => {
+    const m = line.match(/^([A-Z_]+)\s*=\s*(.*)$/);
+    if (m) meta[m[1].toLowerCase()] = m[2].trim();
+  });
+
+  const buildModule = (prefix) => ({
+    explanation: extractSection(text, `${prefix}_EXPLANATION`),
+    improvements: parseList(extractSection(text, `${prefix}_IMPROVEMENTS`)),
+    original: extractSection(text, `${prefix}_ORIGINAL`),
+    optimized: extractSection(text, `${prefix}_OPTIMIZED`),
+    exec_text: extractSection(text, `${prefix}_EXEC`),
+  });
+
+  const result = {
+    project_type: meta.project_type || '專題系統',
+    project_desc: meta.project_desc || '',
+    modules: {
+      input: buildModule('INPUT'),
+      process: buildModule('PROCESS'),
+      output: buildModule('OUTPUT'),
+    },
+  };
+
+  // Chart data
+  result.modules.output.chart = {
+    type: (extractSection(text, 'OUTPUT_CHART_TYPE').toLowerCase().match(/(bar|pie|line)/) || ['bar'])[0],
+    title: extractSection(text, 'OUTPUT_CHART_TITLE'),
+    x_label: extractSection(text, 'OUTPUT_CHART_X_LABEL'),
+    y_label: extractSection(text, 'OUTPUT_CHART_Y_LABEL'),
+    labels: parseList(extractSection(text, 'OUTPUT_CHART_LABELS')),
+    values: parseNumberList(extractSection(text, 'OUTPUT_CHART_VALUES')),
+  };
+
+  return result;
+}
+
+function renderResult(d){
+  document.getElementById('projectInfo').innerHTML = `
+    <span class="badge">📌 專題類型</span>
+    <span class="name">${escapeHtml(d.project_type || '專題系統')}</span>
+    <span class="desc">${escapeHtml(d.project_desc || '')}</span>
+  `;
+
+  const modules = [
+    { key: 'input',   cls: 'i', num: '1', emoji: '📥', name: 'INPUT 輸入模組',   sub: '友善化 ─ ipywidgets 互動介面' },
+    { key: 'process', cls: 'p', num: '2', emoji: '⚙️', name: 'PROCESS 處理模組', sub: '模組化 ─ function 整理邏輯' },
+    { key: 'output',  cls: 'o', num: '3', emoji: '📊', name: 'OUTPUT 輸出模組',  sub: '視覺化 ─ matplotlib 圖表展示' },
+  ];
+
+  let html = '';
+  modules.forEach(m => {
+    const mod = (d.modules && d.modules[m.key]) || {};
+    const improveHtml = (mod.improvements || []).map(x => `<li>${escapeHtml(x)}</li>`).join('');
+    const hasChart = m.key === 'output' && mod.chart;
+    const origStr = JSON.stringify(mod.original || '');
+    const optStr = JSON.stringify(mod.optimized || '');
+
+    html += `
+      <div class="slide ${m.cls}" id="slide-${m.key}">
+        <div class="slide-head">
+          <div class="mod-num">${m.num}</div>
+          <div style="flex:1">
+            <div class="mod-title">${m.emoji} ${m.name}</div>
+            <div class="mod-sub">${m.sub}</div>
+          </div>
+        </div>
+        <div class="compare-grid">
+          <div class="col before">
+            <div class="col-head">❌ 原始程式碼
+              <button class="copy-btn" onclick='copyCode(this, ${origStr})'>複製</button>
+            </div>
+            <pre>${highlight(mod.original || '')}</pre>
+          </div>
+          <div class="col after">
+            <div class="col-head">✅ 優化後程式碼
+              <button class="copy-btn" onclick='copyCode(this, ${optStr})'>複製</button>
+            </div>
+            <pre>${highlight(mod.optimized || '')}</pre>
+            <div class="improve">
+              <div class="lab">💡 改進重點</div>
+              <ul>${improveHtml}</ul>
+            </div>
+          </div>
+        </div>
+        <div class="exec">
+          <div class="exec-lab">🎬 模擬執行結果</div>
+          <div class="exec-grid ${hasChart ? '' : 'single'}">
+            <div class="console">${escapeHtml(mod.exec_text || '─ 無輸出 ─')}</div>
+            ${hasChart ? `<div class="chart-box"><canvas id="chart-${m.key}" height="180"></canvas></div>` : ''}
+          </div>
+        </div>
+        <div class="expla">
+          <b>📋 說明：</b>${escapeHtml(mod.explanation || '')}
+        </div>
+      </div>
+    `;
+  });
+
+  document.getElementById('slidesContainer').innerHTML = html;
+  document.getElementById('result').classList.add('show');
+
+  if (d.modules.output && d.modules.output.chart){
+    setTimeout(() => renderChart(d.modules.output.chart), 100);
+  }
+  setTimeout(()=>document.getElementById('result').scrollIntoView({behavior:'smooth',block:'start'}), 150);
+}
+
+function renderChart(c){
+  const canvas = document.getElementById('chart-output');
+  if (!canvas) return;
+  if (chartInstance) chartInstance.destroy();
+
+  const palette = ['#2B6CB0','#D97215','#2F855A','#CAA23C','#7B4FB1','#C0563F','#3A7D44'];
+  const type = (c.type === 'pie' || c.type === 'line') ? c.type : 'bar';
+
+  chartInstance = new Chart(canvas.getContext('2d'), {
+    type: type,
+    data: {
+      labels: c.labels || [],
+      datasets: [{
+        label: c.y_label || '數值',
+        data: c.values || [],
+        backgroundColor: (c.labels || []).map((_,i)=>palette[i % palette.length]),
+        borderColor: type === 'pie' ? '#fff' : '#21303B',
+        borderWidth: type === 'pie' ? 2 : 1,
+        fill: type === 'line' ? false : true,
+        tension: 0.3,
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        title: { display: true, text: c.title || '', font: { size: 14, weight: 'bold', family: 'Noto Sans TC' }},
+        legend: { display: type === 'pie', position: 'right' }
+      },
+      scales: type === 'pie' ? {} : {
+        x: { title: { display: !!c.x_label, text: c.x_label || '', font: { family: 'Noto Sans TC' }}},
+        y: { title: { display: !!c.y_label, text: c.y_label || '', font: { family: 'Noto Sans TC' }}, beginAtZero: true }
+      }
+    }
+  });
+}
+
+// ============ Downloads ============
+async function downloadPDF(){
+  if (!lastAnalysis){ showToast('請先執行 AI 分析'); return; }
+  const btn = document.getElementById('pdfBtn');
+  btn.disabled = true;
+  showToast('正在製作 PDF…請稍候');
+
+  try {
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF('p', 'mm', 'a4');
+    const slides = ['slide-input', 'slide-process', 'slide-output'];
+    const W = 210, H = 297, M = 8;
+
+    for (let i = 0; i < slides.length; i++){
+      const el = document.getElementById(slides[i]);
+      const canvas = await html2canvas(el, { scale: 2, backgroundColor: '#ffffff', useCORS: true });
+      const imgData = canvas.toDataURL('image/png');
+      const imgW = W - 2*M;
+      const imgH = (canvas.height * imgW) / canvas.width;
+      const fitH = Math.min(imgH, H - 2*M);
+      if (i > 0) pdf.addPage();
+      pdf.addImage(imgData, 'PNG', M, M, imgW, fitH);
+    }
+    const fname = `${lastAnalysis.project_type || '專題'}_IPO對照.pdf`;
+    pdf.save(fname);
+    showToast('✅ PDF 已下載');
+  } catch (e){
+    console.error(e); showToast('⚠ PDF 製作失敗：' + e.message);
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+async function downloadImages(){
+  if (!lastAnalysis){ showToast('請先執行 AI 分析'); return; }
+  const btn = document.getElementById('imgBtn');
+  btn.disabled = true;
+  showToast('正在製作圖片…請稍候');
+
+  try {
+    const slides = [
+      { id: 'slide-input',   name: 'Step1_Input友善化' },
+      { id: 'slide-process', name: 'Step2_Process模組化' },
+      { id: 'slide-output',  name: 'Step3_Output視覺化' },
+    ];
+    for (const s of slides){
+      const el = document.getElementById(s.id);
+      const canvas = await html2canvas(el, { scale: 2, backgroundColor: '#ffffff', useCORS: true });
+      canvas.toBlob(blob => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${s.name}.png`;
+        document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        setTimeout(()=>URL.revokeObjectURL(url), 1000);
+      }, 'image/png');
+      await new Promise(r => setTimeout(r, 600));
+    }
+    showToast('✅ 3 張圖片已下載');
+  } catch (e){
+    console.error(e); showToast('⚠ 圖片製作失敗：' + e.message);
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+function downloadIpynb(){
+  if (!lastAnalysis){ showToast('請先執行 AI 分析'); return; }
+  const d = lastAnalysis;
+
+  // Helper to convert string to lines array (jupyter source format)
+  const lines = (str) => {
+    const arr = (str || '').split('\n');
+    return arr.map((l, i) => i < arr.length - 1 ? l + '\n' : l);
+  };
+
+  // Generate short unique id per cell (nbformat 4.5+ recommends it)
+  let cellIdCounter = 0;
+  const newId = () => `cell-${(++cellIdCounter).toString().padStart(3, '0')}-${Math.random().toString(36).slice(2, 8)}`;
+
+  const mkMarkdown = (src) => ({
+    cell_type: 'markdown',
+    id: newId(),
+    metadata: {},
+    source: lines(src),
+  });
+  const mkCode = (src) => ({
+    cell_type: 'code',
+    id: newId(),
+    execution_count: null,
+    metadata: {},
+    outputs: [],
+    source: lines(src),
+  });
+
+  const inputMod = d.modules.input || {};
+  const processMod = d.modules.process || {};
+  const outputMod = d.modules.output || {};
+
+  const cells = [
+    mkMarkdown(
+`# ${d.project_type || '專題系統'} ─ IPO 模組優化版
+
+> ${d.project_desc || ''}
+
+本筆記本由 **專題系統 IPO 模組分析器** 自動生成，包含三段優化後的程式碼：
+- **STEP 1　📥 INPUT 友善化** ─ ipywidgets 互動介面
+- **STEP 2　⚙️ PROCESS 模組化** ─ function 整理邏輯
+- **STEP 3　📊 OUTPUT 視覺化** ─ matplotlib 圖表展示
+
+> 使用方式：請按順序執行下方各儲存格（Shift + Enter）。
+
+---`
+    ),
+
+    // STEP 1
+    mkMarkdown(
+`## STEP 1　📥 INPUT 友善化
+
+**改進重點：**
+${(inputMod.improvements || []).map(x => '- ' + x).join('\n')}
+
+**說明：** ${inputMod.explanation || ''}`
+    ),
+    mkMarkdown(`### 安裝 ipywidgets（第一次執行）`),
+    mkCode(`!pip install ipywidgets`),
+    mkMarkdown(`### Input 介面程式碼`),
+    mkCode(inputMod.optimized || ''),
+
+    // STEP 2
+    mkMarkdown(
+`---
+
+## STEP 2　⚙️ PROCESS 模組化
+
+**改進重點：**
+${(processMod.improvements || []).map(x => '- ' + x).join('\n')}
+
+**說明：** ${processMod.explanation || ''}`
+    ),
+    mkCode(processMod.optimized || ''),
+
+    // STEP 3
+    mkMarkdown(
+`---
+
+## STEP 3　📊 OUTPUT 視覺化
+
+**改進重點：**
+${(outputMod.improvements || []).map(x => '- ' + x).join('\n')}
+
+**說明：** ${outputMod.explanation || ''}
+
+> ⚠️ 第一次執行會安裝中文字型，需稍候約 5 秒；若仍有方框，請重啟 runtime 後再執行一次。`
+    ),
+    mkCode(outputMod.optimized || ''),
+
+    mkMarkdown(
+`---
+
+## 📋 原始程式碼存底（供對照用）
+
+\`\`\`python
+${document.getElementById('userCode').value}
+\`\`\`
+
+> 本筆記本由 [專題系統 IPO 模組分析器] 自動生成。`
+    ),
+  ];
+
+  const notebook = {
+    cells: cells,
+    metadata: {
+      kernelspec: {
+        display_name: 'Python 3',
+        language: 'python',
+        name: 'python3',
+      },
+      language_info: {
+        name: 'python',
+        version: '3.10',
+      },
+      colab: {
+        provenance: [],
+      },
+    },
+    nbformat: 4,
+    nbformat_minor: 5,
+  };
+
+  const json = JSON.stringify(notebook, null, 1);
+  const blob = new Blob([json], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const fname = `${(d.project_type || '專題系統').replace(/[\\/:*?"<>|]/g, '')}_IPO優化.ipynb`;
+  const a = document.createElement('a');
+  a.href = url; a.download = fname;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(url), 1000);
+  showToast('✅ Jupyter 筆記本已下載');
+}
+</script>
+</body>
+</html>
