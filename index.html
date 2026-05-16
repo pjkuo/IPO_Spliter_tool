@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>專題系統 IPO 模組分析器</title>
+<title>專題系統 IPO 模組分析器（增強版）</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=Noto+Serif+TC:wght@700;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
@@ -19,6 +19,7 @@
     --purple:#7B4FB1; --purpleBg:#F0E8F8;
     --gold:#CAA23C; --goldBg:#FFF6E0;
     --red:#C0563F; --redBg:#FDE4DC;
+    --teal:#2C7A7B; --tealBg:#DDF0F0;
   }
   *{box-sizing:border-box;margin:0;padding:0;}
   body{
@@ -35,25 +36,98 @@
     box-shadow:0 4px 14px rgba(33,48,59,.08);
   }
   h1{font-family:"Noto Serif TC",serif;font-size:25px;font-weight:900;
-     display:flex;align-items:center;gap:10px;}
+     display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
   h1 .icon{font-size:28px;}
+  h1 .ver{font-size:11px;background:var(--purple);color:#fff;
+    padding:3px 9px;border-radius:11px;font-family:"Noto Sans TC";font-weight:700;letter-spacing:.5px;}
   .sub{font-size:13px;color:#5d6b74;margin-top:3px;}
   .sub b.b{color:var(--blue);} .sub b.p{color:var(--orange);} .sub b.o{color:var(--green);}
+
+  /* ========= Step navigation (wizard) ========= */
+  .stepper{
+    background:#fff;border:1.5px solid var(--line);border-radius:14px;
+    padding:14px 12px;margin-bottom:14px;
+    display:flex;align-items:center;justify-content:space-between;gap:6px;
+    overflow-x:auto;
+  }
+  .step-item{
+    display:flex;flex-direction:column;align-items:center;gap:4px;
+    flex:1;min-width:90px;cursor:pointer;position:relative;
+    padding:4px 2px;transition:transform .12s;
+  }
+  .step-item:hover{transform:translateY(-1px);}
+  .step-item .step-circle{
+    width:34px;height:34px;border-radius:50%;
+    background:#fff;border:2px solid var(--line);color:#9aa0a6;
+    display:flex;align-items:center;justify-content:center;
+    font-family:"Noto Serif TC",serif;font-weight:900;font-size:15px;
+    transition:all .2s;z-index:2;position:relative;
+  }
+  .step-item .step-label{
+    font-size:11.5px;font-weight:700;color:#5d6b74;text-align:center;
+    white-space:nowrap;
+  }
+  .step-item.active .step-circle{
+    background:var(--purple);border-color:var(--purple);color:#fff;
+    box-shadow:0 0 0 4px var(--purpleBg);
+  }
+  .step-item.active .step-label{color:var(--purple);}
+  .step-item.done .step-circle{
+    background:var(--green);border-color:var(--green);color:#fff;
+  }
+  .step-item.done .step-circle::after{content:"✓";}
+  .step-item.done .step-circle .num{display:none;}
+  .step-item.done .step-label{color:var(--green);}
+  .step-connector{
+    flex:0 1 30px;height:2px;background:var(--line);min-width:14px;
+    align-self:flex-start;margin-top:21px;
+  }
+  .step-connector.done{background:var(--green);}
+  @media (max-width:720px){
+    .stepper{padding:10px 6px;}
+    .step-item{min-width:64px;}
+    .step-item .step-label{font-size:10px;}
+    .step-connector{min-width:6px;}
+  }
 
   .card{
     background:#fff;border:1.5px solid var(--line);border-radius:14px;
     padding:18px;margin-bottom:14px;
+    transition:box-shadow .25s;
   }
+  .card.active-card{box-shadow:0 0 0 3px var(--purpleBg),0 4px 14px rgba(123,79,177,.12);}
   .section-title{
     font-size:15px;font-weight:900;margin-bottom:9px;
-    display:flex;align-items:center;gap:9px;
+    display:flex;align-items:center;gap:9px;flex-wrap:wrap;
   }
   .section-title .num{
     background:var(--purple);color:#fff;width:24px;height:24px;
     border-radius:50%;display:inline-flex;align-items:center;justify-content:center;
     font-family:"Noto Serif TC",serif;font-size:13px;
   }
+  .section-title .help-btn{
+    margin-left:auto;background:transparent;border:1px solid var(--line);
+    color:#5d6b74;font-family:inherit;font-size:11px;
+    padding:3px 9px;border-radius:5px;cursor:pointer;font-weight:700;
+  }
+  .section-title .help-btn:hover{background:var(--paper);border-color:var(--purple);color:var(--purple);}
   .hint{font-size:12px;color:#5d6b74;margin-bottom:9px;}
+
+  /* ========= Input tabs (paste / upload) ========= */
+  .tab-bar{
+    display:flex;gap:0;border-bottom:1.5px solid var(--line);margin-bottom:10px;
+  }
+  .tab-btn{
+    background:transparent;border:none;border-bottom:2.5px solid transparent;
+    font-family:inherit;font-size:13px;font-weight:700;color:#5d6b74;
+    padding:8px 14px;cursor:pointer;
+    display:flex;align-items:center;gap:6px;
+    margin-bottom:-1.5px;
+  }
+  .tab-btn:hover{color:var(--purple);}
+  .tab-btn.active{color:var(--purple);border-bottom-color:var(--purple);}
+  .tab-panel{display:none;}
+  .tab-panel.active{display:block;}
 
   textarea{
     width:100%;font-family:"JetBrains Mono",monospace;font-size:12.5px;
@@ -62,6 +136,42 @@
     min-height:170px;line-height:1.55;
   }
   textarea:focus{outline:none;border-color:var(--purple);background:#fff;}
+  input[type="text"],input[type="password"],select{
+    font-family:inherit;font-size:13px;
+    border:1.5px solid var(--line);border-radius:7px;padding:7px 11px;
+    background:#fff;color:var(--ink);width:100%;
+  }
+  input[type="text"]:focus,input[type="password"]:focus,select:focus{
+    outline:none;border-color:var(--purple);
+  }
+
+  /* ========= File upload drop zone ========= */
+  .drop-zone{
+    border:2px dashed var(--line);border-radius:10px;
+    background:linear-gradient(135deg,#fafaf6,#fff);
+    padding:30px 20px;text-align:center;cursor:pointer;
+    transition:all .15s;
+  }
+  .drop-zone:hover,.drop-zone.dragover{
+    border-color:var(--purple);background:var(--purpleBg);
+  }
+  .drop-zone .icon-big{font-size:38px;display:block;margin-bottom:8px;}
+  .drop-zone .main-txt{font-size:14px;font-weight:900;color:var(--ink);margin-bottom:3px;}
+  .drop-zone .sub-txt{font-size:12px;color:#5d6b74;}
+  .drop-zone .browse{color:var(--purple);text-decoration:underline;font-weight:700;}
+  .file-info{
+    margin-top:10px;padding:9px 12px;border-radius:7px;
+    background:var(--greenBg);border:1.5px solid var(--green);
+    font-size:12.5px;display:none;align-items:center;gap:8px;
+  }
+  .file-info.show{display:flex;}
+  .file-info .file-ic{font-size:18px;}
+  .file-info .file-name{font-weight:700;flex:1;}
+  .file-info .file-size{color:#5d6b74;font-size:11.5px;}
+  .file-info .remove-btn{
+    background:#fff;border:1px solid var(--green);color:var(--green);
+    font-family:inherit;font-size:11px;padding:2px 8px;border-radius:4px;cursor:pointer;font-weight:700;
+  }
 
   .samples{display:flex;gap:7px;flex-wrap:wrap;margin-top:9px;align-items:center;}
   .samples .lab{font-size:11.5px;color:#5d6b74;}
@@ -90,8 +200,126 @@
     font-weight:700;font-size:13.5px;padding:9px 17px;text-decoration:none;
   }
   .btn-secondary:hover{background:var(--purpleBg);}
+  .btn-teal{background:var(--teal);color:#fff;}
+  .btn-teal:hover:not(:disabled){background:#235757;}
 
-  /* Manual mode (Gemini copy-paste workflow) */
+  /* ========= AI Provider config ========= */
+  .provider-grid{
+    display:grid;grid-template-columns:repeat(4,1fr);gap:9px;
+    margin-bottom:10px;
+  }
+  @media (max-width:680px){.provider-grid{grid-template-columns:repeat(2,1fr);}}
+  .provider-card{
+    background:#fff;border:2px solid var(--line);border-radius:9px;
+    padding:11px 9px;cursor:pointer;text-align:center;
+    transition:all .15s;position:relative;
+  }
+  .provider-card:hover{border-color:var(--purple);}
+  .provider-card.selected{
+    border-color:var(--purple);background:var(--purpleBg);
+    box-shadow:0 2px 8px rgba(123,79,177,.18);
+  }
+  .provider-card.selected::after{
+    content:"✓";position:absolute;top:5px;right:7px;
+    background:var(--purple);color:#fff;
+    width:18px;height:18px;border-radius:50%;
+    font-size:11px;display:flex;align-items:center;justify-content:center;font-weight:900;
+  }
+  .provider-card .p-icon{font-size:24px;display:block;margin-bottom:4px;}
+  .provider-card .p-name{font-size:12.5px;font-weight:900;color:var(--ink);}
+  .provider-card .p-desc{font-size:10.5px;color:#5d6b74;margin-top:1px;}
+  .provider-card.recommended .p-name::after{
+    content:"★";color:var(--gold);margin-left:3px;
+  }
+  /* 上鎖樣式 */
+  .provider-card.locked{
+    background:#f3efe6;opacity:.62;cursor:pointer;
+    border-style:dashed;
+  }
+  .provider-card.locked:hover{
+    opacity:.85;border-color:var(--purple);border-style:solid;
+  }
+  .provider-card.locked .lock-ic{
+    position:absolute;top:5px;right:7px;font-size:13px;
+    background:#fff;padding:2px 5px;border-radius:4px;
+    border:1px solid var(--line);
+  }
+  .provider-card.locked.selected{opacity:1;background:var(--purpleBg);border-style:solid;}
+  .provider-card.locked.selected .lock-ic{display:none;}
+  .locked-hint{
+    margin-top:9px;padding:8px 12px;font-size:11.5px;
+    background:#fff;border:1px dashed var(--line);border-radius:7px;
+    color:#5d6b74;line-height:1.55;
+  }
+  .locked-hint b{color:var(--purple);}
+
+  /* Debug panel for showing raw AI response when parse fails */
+  .debug-panel{
+    margin-top:12px;background:#fafaf6;border:1.5px solid var(--gold);
+    border-radius:8px;padding:11px 13px;
+  }
+  .debug-panel summary{
+    cursor:pointer;font-weight:900;font-size:12.5px;color:#7a5a13;
+    display:flex;align-items:center;gap:7px;
+  }
+  .debug-panel summary:hover{color:#a9781b;}
+  .debug-panel .diag-grid{
+    display:grid;grid-template-columns:auto 1fr;gap:6px 12px;
+    margin:8px 0;font-size:11.5px;padding:8px;
+    background:#fff;border-radius:6px;border:1px solid var(--line);
+  }
+  .debug-panel .diag-key{font-weight:700;color:#5d6b74;}
+  .debug-panel .diag-val{font-family:"JetBrains Mono",monospace;}
+  .debug-panel .diag-val.ok{color:var(--green);}
+  .debug-panel .diag-val.err{color:var(--red);}
+  .debug-panel .raw-box{
+    margin-top:8px;background:#1c2a32;color:#e8edf0;
+    font-family:"JetBrains Mono",monospace;font-size:11px;line-height:1.55;
+    padding:9px 11px;border-radius:6px;
+    max-height:240px;overflow:auto;white-space:pre-wrap;word-break:break-all;
+  }
+  .debug-panel .raw-actions{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap;}
+  .debug-panel .raw-actions button{
+    font-family:inherit;font-size:11px;font-weight:700;
+    padding:4px 10px;border-radius:5px;cursor:pointer;
+    background:#fff;border:1px solid var(--line);color:var(--ink);
+  }
+  .debug-panel .raw-actions button:hover{border-color:var(--purple);color:var(--purple);}
+
+  .ai-config-row{
+    display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px;
+  }
+  @media (max-width:680px){.ai-config-row{grid-template-columns:1fr;}}
+  .field-group label{
+    display:block;font-size:11.5px;font-weight:700;color:#5d6b74;margin-bottom:4px;
+  }
+  .field-group label .req{color:var(--red);}
+  .field-with-eye{position:relative;}
+  .field-with-eye .eye-btn{
+    position:absolute;right:7px;top:50%;transform:translateY(-50%);
+    background:transparent;border:none;cursor:pointer;font-size:14px;color:#9aa0a6;
+  }
+  .field-with-eye .eye-btn:hover{color:var(--purple);}
+  .field-with-eye input{padding-right:32px;}
+  .save-key-row{
+    display:flex;align-items:center;gap:7px;margin-top:8px;font-size:11.5px;color:#5d6b74;
+  }
+  .save-key-row input[type="checkbox"]{width:14px;height:14px;cursor:pointer;}
+  .key-note{
+    margin-top:9px;padding:8px 11px;background:var(--blueBg);border:1px solid var(--blue);
+    border-radius:7px;font-size:11.5px;color:#1b4a7e;line-height:1.6;
+  }
+  .key-note b{color:#0e3257;}
+  .key-note a{color:var(--blue);font-weight:700;}
+
+  .ai-test-row{
+    display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;align-items:center;
+  }
+  .ai-test-row .status{font-size:11.5px;color:#5d6b74;}
+  .ai-test-row .status.ok{color:var(--green);font-weight:700;}
+  .ai-test-row .status.err{color:var(--red);font-weight:700;}
+
+  /* Manual mode */
   .manual-mode{
     margin-top:14px;background:linear-gradient(135deg,var(--purpleBg),#fff);
     border:1.5px solid var(--purple);border-radius:11px;padding:16px 18px;
@@ -141,7 +369,6 @@
   .slide.i{border-color:var(--blue);}
   .slide.p{border-color:var(--orange);}
   .slide.o{border-color:var(--green);}
-
   .slide-head{
     display:flex;align-items:center;gap:11px;
     padding-bottom:11px;margin-bottom:12px;border-bottom:2px solid;
@@ -149,7 +376,6 @@
   .slide.i .slide-head{border-color:var(--blueBg);}
   .slide.p .slide-head{border-color:var(--orangeBg);}
   .slide.o .slide-head{border-color:var(--greenBg);}
-
   .mod-num{
     width:38px;height:38px;border-radius:10px;
     color:#fff;font-weight:900;
@@ -167,7 +393,6 @@
 
   .compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:11px;}
   @media (max-width:720px){.compare-grid{grid-template-columns:1fr;}}
-
   .col{
     background:#fafaf6;border:1px solid var(--line);border-radius:9px;
     overflow:hidden;display:flex;flex-direction:column;
@@ -181,7 +406,6 @@
   .slide.i .col.after .col-head{background:var(--blue);}
   .slide.p .col.after .col-head{background:var(--orange);}
   .slide.o .col.after .col-head{background:var(--green);}
-
   .col-head .copy-btn{
     margin-left:auto;background:rgba(255,255,255,.25);
     border:1px solid currentColor;border-radius:5px;
@@ -222,16 +446,13 @@
   .slide.i .exec{border-color:var(--blueBg);}
   .slide.p .exec{border-color:var(--orangeBg);}
   .slide.o .exec{border-color:var(--greenBg);}
-
   .exec-lab{font-size:10.5px;font-weight:900;letter-spacing:.5px;margin-bottom:6px;}
   .slide.i .exec-lab{color:var(--blue);}
   .slide.p .exec-lab{color:var(--orange);}
   .slide.o .exec-lab{color:var(--green);}
-
   .exec-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;}
   .exec-grid.single{grid-template-columns:1fr;}
   @media (max-width:720px){.exec-grid{grid-template-columns:1fr;}}
-
   .console{
     background:#1c2a32;color:#a8d8a8;
     font-family:"JetBrains Mono",monospace;font-size:11.5px;line-height:1.7;
@@ -239,7 +460,6 @@
     border-left:3px solid #2BB45F;min-height:70px;
   }
   .chart-box{background:#fff;border:1px solid var(--line);border-radius:7px;padding:9px;}
-
   .expla{
     margin-top:9px;background:var(--goldBg);border:1.5px solid var(--gold);
     border-radius:8px;padding:8px 12px;font-size:12px;line-height:1.55;
@@ -265,6 +485,7 @@
     display:flex;align-items:center;justify-content:center;font-size:17px;
     flex:0 0 auto;
   }
+  .dl-btn.teal .ic{background:var(--teal);}
   .dl-btn .text .t{font-weight:900;font-size:13.5px;margin-bottom:1px;}
   .dl-btn .text .d{font-size:11.5px;color:#5d6b74;}
 
@@ -291,9 +512,42 @@
   }
   .toast.show{opacity:1;transform:translateX(-50%) translateY(-8px);}
 
+  /* Help modal */
+  .modal-bg{
+    position:fixed;top:0;left:0;right:0;bottom:0;
+    background:rgba(0,0,0,.5);
+    display:none;align-items:center;justify-content:center;
+    z-index:2000;padding:20px;
+  }
+  .modal-bg.show{display:flex;}
+  .modal{
+    background:#fff;border-radius:14px;max-width:560px;width:100%;
+    max-height:85vh;overflow-y:auto;
+    box-shadow:0 18px 40px rgba(0,0,0,.3);
+  }
+  .modal-head{
+    padding:14px 18px;border-bottom:1.5px solid var(--line);
+    display:flex;align-items:center;gap:10px;
+    background:var(--paper);border-radius:14px 14px 0 0;
+  }
+  .modal-head .ttl{font-size:15px;font-weight:900;flex:1;}
+  .modal-head .x{
+    background:transparent;border:none;font-size:20px;cursor:pointer;
+    color:#5d6b74;padding:0 4px;
+  }
+  .modal-body{padding:16px 18px;font-size:13px;line-height:1.7;}
+  .modal-body h4{font-size:13.5px;font-weight:900;margin:9px 0 5px;color:var(--purple);}
+  .modal-body ol,.modal-body ul{padding-left:22px;}
+  .modal-body li{margin-bottom:3px;}
+  .modal-body code{
+    background:var(--paper);padding:1px 5px;border-radius:3px;
+    font-family:"JetBrains Mono",monospace;font-size:11.5px;color:#7a5a13;
+  }
+  .modal-body a{color:var(--purple);font-weight:700;}
+
   @media print{
     body{background:#fff;padding:0;}
-    .input-section,.dl-section,.footer-info,footer{display:none !important;}
+    .stepper,.input-section,.dl-section,.footer-info,footer{display:none !important;}
     .slide{break-after:page;page-break-after:always;border:1.5px solid var(--line);}
     .slide:last-child{break-after:auto;}
   }
@@ -303,42 +557,151 @@
 <div class="wrap">
 
   <header>
-    <h1><span class="icon">🎯</span>專題系統 IPO 模組分析器</h1>
+    <h1><span class="icon">🎯</span>專題系統 IPO 模組分析器<span class="ver">v2.0 增強版</span></h1>
     <div class="sub">
-      貼整支專題程式 → AI 自動分割
+      貼程式碼 / 上傳 .py / .ipynb → AI 自動分割
       <b class="b">Input 輸入</b> ＋ <b class="p">Process 處理</b> ＋ <b class="o">Output 輸出</b>
-      → 對照展示 → 下載 PDF／圖片／<b>.ipynb 筆記本</b>
+      → 對照展示 → 下載 PDF／圖片／<b>.ipynb 筆記本</b>／<b>操作手冊</b>
     </div>
   </header>
 
-  <!-- ===== Input ===== -->
-  <div class="card input-section">
-    <div class="section-title"><span class="num">1</span>貼上你的專題系統程式碼</div>
-    <div class="hint">把目前可執行的整支程式（含輸入、計算、輸出）貼進來，AI 會自動辨識、分割、優化。</div>
-
-    <textarea id="userCode" placeholder="把你的 Python 專題程式碼貼進來..."></textarea>
-
-    <div class="samples">
-      <span class="lab">沒程式碼？試試專題系統範例：</span>
-      <button onclick="loadSample('grade')">學生成績管理</button>
-      <button onclick="loadSample('health')">健康監測</button>
-      <button onclick="loadSample('library')">圖書借閱統計</button>
-      <button onclick="loadSample('electric')">電費試算</button>
+  <!-- ===== Step navigation ===== -->
+  <div class="stepper" id="stepper">
+    <div class="step-item active" data-step="1" onclick="goToStep(1)">
+      <div class="step-circle"><span class="num">1</span></div>
+      <div class="step-label">輸入程式碼</div>
     </div>
+    <div class="step-connector"></div>
+    <div class="step-item" data-step="2" onclick="goToStep(2)">
+      <div class="step-circle"><span class="num">2</span></div>
+      <div class="step-label">AI 設定</div>
+    </div>
+    <div class="step-connector"></div>
+    <div class="step-item" data-step="3" onclick="goToStep(3)">
+      <div class="step-circle"><span class="num">3</span></div>
+      <div class="step-label">執行分析</div>
+    </div>
+    <div class="step-connector"></div>
+    <div class="step-item" data-step="4" onclick="goToStep(4)">
+      <div class="step-circle"><span class="num">4</span></div>
+      <div class="step-label">檢視結果</div>
+    </div>
+    <div class="step-connector"></div>
+    <div class="step-item" data-step="5" onclick="goToStep(5)">
+      <div class="step-circle"><span class="num">5</span></div>
+      <div class="step-label">下載資源</div>
+    </div>
+  </div>
+
+  <!-- ===== STEP 1: Input ===== -->
+  <div class="card input-section active-card" id="card-step1">
+    <div class="section-title">
+      <span class="num">1</span>輸入專題系統程式碼
+      <button class="help-btn" onclick="showHelp('step1')">❔ 說明</button>
+    </div>
+    <div class="hint">兩種方式擇一：直接貼上程式碼，或上傳 <code>.py</code> / <code>.ipynb</code> / <code>.txt</code> 檔案。</div>
+
+    <div class="tab-bar">
+      <button class="tab-btn active" data-tab="paste" onclick="switchInputTab('paste')">📝 直接貼上</button>
+      <button class="tab-btn" data-tab="upload" onclick="switchInputTab('upload')">📁 上傳檔案</button>
+    </div>
+
+    <div class="tab-panel active" id="panel-paste">
+      <textarea id="userCode" placeholder="把你的 Python 專題程式碼貼進來..."></textarea>
+      <div class="samples">
+        <span class="lab">沒程式碼？試試專題系統範例：</span>
+        <button onclick="loadSample('grade')">學生成績管理</button>
+        <button onclick="loadSample('health')">健康監測</button>
+        <button onclick="loadSample('library')">圖書借閱統計</button>
+        <button onclick="loadSample('electric')">電費試算</button>
+      </div>
+    </div>
+
+    <div class="tab-panel" id="panel-upload">
+      <div class="drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
+        <span class="icon-big">📂</span>
+        <div class="main-txt">拖放檔案到此處，或<span class="browse">點此選擇</span></div>
+        <div class="sub-txt">支援 .py（Python 程式）／.ipynb（Colab 筆記本）／.txt（純文字）</div>
+      </div>
+      <input type="file" id="fileInput" accept=".py,.ipynb,.txt" style="display:none" onchange="handleFileSelect(event)">
+      <div class="file-info" id="fileInfo">
+        <span class="file-ic">📄</span>
+        <span class="file-name" id="fileName"></span>
+        <span class="file-size" id="fileSize"></span>
+        <button class="remove-btn" onclick="clearUploadedFile()">移除</button>
+      </div>
+      <div class="hint" style="margin-top:9px;">
+        💡 上傳 <code>.ipynb</code> 會自動抽取所有 code cell 並合併；上傳 <code>.py</code> 則完整載入。
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== STEP 2: AI Configuration ===== -->
+  <div class="card" id="card-step2">
+    <div class="section-title">
+      <span class="num">2</span>選擇 AI 助手與 API 金鑰
+      <button class="help-btn" onclick="showHelp('step2')">❔ 說明</button>
+    </div>
+    <div class="hint">選擇你要使用的 AI 服務並輸入對應的 API 金鑰。金鑰僅儲存於你的瀏覽器，不會傳送到任何其他伺服器。</div>
+
+    <div class="provider-grid">
+      <div class="provider-card selected recommended" data-provider="gemini" onclick="selectProvider('gemini')">
+        <span class="p-icon">✨</span>
+        <div class="p-name">Gemini</div>
+        <div class="p-desc">Google AI Studio（免費）</div>
+      </div>
+      <div class="provider-card locked" data-provider="claude_embed" onclick="selectProvider('claude_embed')">
+        <span class="lock-ic">🔒</span>
+        <span class="p-icon">🪶</span>
+        <div class="p-name">Claude（內嵌）</div>
+        <div class="p-desc">在 Claude.ai 內免設定</div>
+      </div>
+      <div class="provider-card locked" data-provider="openai" onclick="selectProvider('openai')">
+        <span class="lock-ic">🔒</span>
+        <span class="p-icon">🤖</span>
+        <div class="p-name">ChatGPT</div>
+        <div class="p-desc">OpenAI API（需付費）</div>
+      </div>
+      <div class="provider-card locked" data-provider="anthropic" onclick="selectProvider('anthropic')">
+        <span class="lock-ic">🔒</span>
+        <span class="p-icon">🧠</span>
+        <div class="p-name">Claude API</div>
+        <div class="p-desc">Anthropic 金鑰（需付費）</div>
+      </div>
+    </div>
+    <div class="locked-hint">
+      💡 預設使用 <b>Gemini</b>（免費註冊即用）。其他選項已上鎖，若你已自行取得 API 金鑰，請點選對應選項解鎖。
+    </div>
+
+    <div id="aiConfigPanel">
+      <!-- 動態渲染 API Key / 模型 / 端點 -->
+    </div>
+
+    <div class="ai-test-row">
+      <button class="btn btn-ghost" id="testKeyBtn" onclick="testApiKey()" style="font-size:12px;padding:7px 13px;">🔌 測試連線</button>
+      <button class="btn btn-ghost" id="manualSwitchBtn" onclick="enterManualMode()" style="font-size:12px;padding:7px 13px;">📋 改用手動複製貼上</button>
+      <span class="status" id="testStatus"></span>
+    </div>
+  </div>
+
+  <!-- ===== STEP 3: Analyze ===== -->
+  <div class="card" id="card-step3">
+    <div class="section-title">
+      <span class="num">3</span>執行 AI 分析
+      <button class="help-btn" onclick="showHelp('step3')">❔ 說明</button>
+    </div>
+    <div class="hint">按下分析鈕，AI 會自動辨識專題類型、分割 IPO 三模組並產出優化建議。</div>
 
     <div class="action-row">
       <button class="btn btn-primary" id="goBtn" onclick="analyze()">
-        <span id="goLabel">🤖 自動分析（在 Claude.ai 內）</span>
+        <span id="goLabel">🚀 開始 AI 分析</span>
       </button>
-      <button class="btn btn-secondary" id="manualBtn" onclick="enterManualMode()">
-        📋 改用 Gemini 手動分析
-      </button>
-      <button class="btn btn-ghost" onclick="clearAll()">清空</button>
+      <button class="btn btn-ghost" onclick="clearAll()">🗑 清空全部</button>
     </div>
 
     <div id="errorBox"></div>
 
-    <!-- ===== Manual mode (works without API) ===== -->
+    <!-- Manual mode -->
     <div id="manualMode" class="manual-mode" style="display:none">
       <div class="manual-step">
         <div class="manual-step-head">
@@ -351,19 +714,20 @@
         <textarea id="manualPrompt" readonly></textarea>
         <div class="action-row">
           <button class="btn btn-primary" onclick="copyManualPrompt()">📋 複製提示語</button>
-          <a class="btn btn-secondary" href="https://gemini.google.com/app" target="_blank" rel="noopener">🔗 開啟 Gemini（新分頁）</a>
+          <a class="btn btn-secondary" href="https://gemini.google.com/app" target="_blank" rel="noopener">🔗 開啟 Gemini</a>
+          <a class="btn btn-secondary" href="https://chatgpt.com" target="_blank" rel="noopener">🔗 開啟 ChatGPT</a>
+          <a class="btn btn-secondary" href="https://claude.ai" target="_blank" rel="noopener">🔗 開啟 Claude</a>
         </div>
       </div>
-
       <div class="manual-step">
         <div class="manual-step-head">
           <span class="step-badge">B</span>
           <div>
-            <div class="step-name">把 Gemini 的回應貼回這裡</div>
+            <div class="step-name">把 AI 的回應貼回這裡</div>
             <div class="step-desc">整段複製，從 [META] 開始貼到 [/OUTPUT_CHART_VALUES] 結束</div>
           </div>
         </div>
-        <textarea id="manualResponse" placeholder="把 Gemini 回覆的完整內容貼進來..."></textarea>
+        <textarea id="manualResponse" placeholder="把 AI 回覆的完整內容貼進來..."></textarea>
         <div class="action-row">
           <button class="btn btn-primary" onclick="parseManualResponse()">✨ 解析並產出 IPO 對照</button>
           <button class="btn btn-ghost" onclick="exitManualMode()">取消</button>
@@ -372,18 +736,23 @@
     </div>
   </div>
 
-  <!-- ===== Result ===== -->
+  <!-- ===== STEP 4-5: Result + Download ===== -->
   <div class="result" id="result">
+    <div class="card" id="card-step4">
+      <div class="section-title">
+        <span class="num">4</span>檢視 IPO 三模組分析結果
+        <button class="help-btn" onclick="showHelp('step4')">❔ 說明</button>
+      </div>
+      <div class="project-info" id="projectInfo"></div>
+      <div id="slidesContainer"></div>
+    </div>
 
-    <div class="project-info" id="projectInfo"></div>
-
-    <div id="slidesContainer"></div>
-
-    <!-- Download buttons -->
-    <div class="card dl-section">
-      <div class="section-title"><span class="num">2</span>下載 ─ 用於專題報告與簡報</div>
-      <div class="hint">產生的對照頁面可下載為 PDF 簡報、圖片、Jupyter 筆記本，或直接列印。</div>
-
+    <div class="card dl-section" id="card-step5">
+      <div class="section-title">
+        <span class="num">5</span>下載 ─ 用於專題報告與簡報
+        <button class="help-btn" onclick="showHelp('step5')">❔ 說明</button>
+      </div>
+      <div class="hint">產生的對照頁面可下載為 PDF 簡報、PNG 圖片、Jupyter 筆記本，或產生圖文操作手冊。</div>
       <div class="dl-grid">
         <button class="dl-btn" onclick="downloadPDF()" id="pdfBtn">
           <div class="ic">📑</div>
@@ -396,7 +765,7 @@
           <div class="ic">🖼️</div>
           <div class="text">
             <div class="t">下載卡片圖片</div>
-            <div class="d">3 張 PNG 圖片，貼入 PowerPoint</div>
+            <div class="d">3 張 PNG，可貼入 PowerPoint</div>
           </div>
         </button>
         <button class="dl-btn" onclick="downloadIpynb()" id="ipynbBtn">
@@ -406,29 +775,41 @@
             <div class="d">可直接拖進 Google Colab 開啟執行</div>
           </div>
         </button>
-        <button class="dl-btn" onclick="window.print()">
-          <div class="ic">🖨️</div>
+        <button class="dl-btn teal" onclick="downloadManual()" id="manualBtn2">
+          <div class="ic">📖</div>
           <div class="text">
-            <div class="t">列印對照頁</div>
-            <div class="d">用瀏覽器列印或另存 PDF</div>
+            <div class="t">下載操作手冊（圖文版）</div>
+            <div class="d">含 SVG 流程圖，依步驟順序作業</div>
           </div>
         </button>
       </div>
     </div>
-
   </div>
 
   <div class="footer-info">
-    ⚠️ <b>使用提醒：</b>下載的 .ipynb 拖到 <span class="hl">Google Colab</span> 即可開啟。Output 段已內含<span class="hl">中文字型起手式</span>，可直接執行不會出現方框字。
+    ⚠️ <b>使用提醒：</b>下載的 .ipynb 拖到 <span class="hl">Google Colab</span> 即可開啟。Output 段已內含<span class="hl">中文字型起手式</span>，可直接執行不會出現方框字。本工具支援 <span class="hl">Claude / Gemini / ChatGPT</span> 三大 AI 服務，可依個人 API 金鑰自由切換。
   </div>
-  <footer>專題系統 IPO 模組分析器 ─ 讓你的專題更好用、更好懂、更好看</footer>
+  <footer>專題系統 IPO 模組分析器 v2.0 ─ 讓你的專題更好用、更好懂、更好看</footer>
 
 </div>
 
 <div class="toast" id="toast"></div>
 
+<!-- ===== Help modal ===== -->
+<div class="modal-bg" id="helpModal" onclick="if(event.target===this)closeHelp()">
+  <div class="modal">
+    <div class="modal-head">
+      <span class="ttl" id="helpTitle">說明</span>
+      <button class="x" onclick="closeHelp()">✕</button>
+    </div>
+    <div class="modal-body" id="helpBody"></div>
+  </div>
+</div>
+
 <script>
-// ============ Samples ============
+// ============================================================
+//  ============ Sample programs (unchanged) ============
+// ============================================================
 const SAMPLES = {
   grade: `# 學生成績管理系統
 math = 85
@@ -553,22 +934,533 @@ print('每度單價:', rate)
 print('應繳電費:', round(fee), '元')`
 };
 
-function loadSample(key){ document.getElementById('userCode').value = SAMPLES[key]; }
+function loadSample(key){
+  document.getElementById('userCode').value = SAMPLES[key];
+  switchInputTab('paste');
+}
 
 function clearAll(){
   document.getElementById('userCode').value = '';
+  clearUploadedFile();
   document.getElementById('result').classList.remove('show');
   document.getElementById('errorBox').innerHTML = '';
+  document.getElementById('manualMode').style.display = 'none';
+  goToStep(1);
+  setStepDone(1, false);
+  setStepDone(2, false);
+  setStepDone(3, false);
+  setStepDone(4, false);
 }
 
 function showToast(msg){
   const t = document.getElementById('toast');
   t.textContent = msg;
   t.classList.add('show');
-  setTimeout(()=>t.classList.remove('show'), 2000);
+  setTimeout(()=>t.classList.remove('show'), 2200);
 }
 
-// ============ Syntax highlight ============
+// ============================================================
+//  ============ Step navigation ============
+// ============================================================
+function goToStep(n){
+  document.querySelectorAll('.step-item').forEach(el => {
+    el.classList.remove('active');
+  });
+  document.querySelectorAll('.card').forEach(el => el.classList.remove('active-card'));
+  const item = document.querySelector(`.step-item[data-step="${n}"]`);
+  if (item && !item.classList.contains('done')) item.classList.add('active');
+  const card = document.getElementById(`card-step${n}`);
+  if (card){
+    card.classList.add('active-card');
+    setTimeout(()=>card.scrollIntoView({behavior:'smooth',block:'start'}),50);
+  }
+}
+function setStepDone(n, done){
+  const item = document.querySelector(`.step-item[data-step="${n}"]`);
+  if (!item) return;
+  if (done){
+    item.classList.add('done');
+    item.classList.remove('active');
+    // mark connector
+    const next = item.nextElementSibling;
+    if (next && next.classList.contains('step-connector')) next.classList.add('done');
+  } else {
+    item.classList.remove('done');
+    const next = item.nextElementSibling;
+    if (next && next.classList.contains('step-connector')) next.classList.remove('done');
+  }
+}
+
+// ============================================================
+//  ============ Input tabs & file upload ============
+// ============================================================
+function switchInputTab(tab){
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.id === 'panel-' + tab));
+}
+
+function handleFileSelect(e){
+  const file = e.target.files && e.target.files[0];
+  if (file) readFile(file);
+}
+
+function readFile(file){
+  const allowedExt = ['.py', '.ipynb', '.txt'];
+  const name = (file.name || '').toLowerCase();
+  if (!allowedExt.some(x => name.endsWith(x))){
+    showToast('⚠ 僅支援 .py / .ipynb / .txt 檔案');
+    return;
+  }
+  if (file.size > 5 * 1024 * 1024){
+    showToast('⚠ 檔案過大（>5MB）');
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const content = e.target.result;
+    let code = '';
+    if (name.endsWith('.ipynb')){
+      try {
+        const nb = JSON.parse(content);
+        if (!nb.cells || !Array.isArray(nb.cells)) throw new Error('不是合法的 ipynb 格式');
+        code = nb.cells
+          .filter(c => c.cell_type === 'code')
+          .map(c => Array.isArray(c.source) ? c.source.join('') : (c.source || ''))
+          .filter(s => s.trim().length > 0)
+          .join('\n\n# --- 下一個 cell ---\n\n');
+        if (!code.trim()) throw new Error('檔案中沒有可用的 code cell');
+      } catch (err){
+        showToast('⚠ ipynb 解析失敗：' + err.message);
+        return;
+      }
+    } else {
+      code = content;
+    }
+    document.getElementById('userCode').value = code;
+    // 顯示檔案資訊
+    document.getElementById('fileName').textContent = file.name;
+    document.getElementById('fileSize').textContent = formatFileSize(file.size);
+    document.getElementById('fileInfo').classList.add('show');
+    showToast('✅ 已載入 ' + file.name + '（' + code.split('\n').length + ' 行）');
+    setStepDone(1, true);
+  };
+  reader.onerror = () => showToast('⚠ 檔案讀取失敗');
+  reader.readAsText(file, 'utf-8');
+}
+
+function clearUploadedFile(){
+  document.getElementById('fileInput').value = '';
+  document.getElementById('fileInfo').classList.remove('show');
+}
+
+function formatFileSize(bytes){
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1024*1024) return (bytes/1024).toFixed(1) + ' KB';
+  return (bytes/1024/1024).toFixed(2) + ' MB';
+}
+
+// 拖放
+window.addEventListener('DOMContentLoaded', () => {
+  const dropZone = document.getElementById('dropZone');
+  if (!dropZone) return;
+  ['dragenter','dragover'].forEach(evt => {
+    dropZone.addEventListener(evt, e => {
+      e.preventDefault(); e.stopPropagation();
+      dropZone.classList.add('dragover');
+    });
+  });
+  ['dragleave','drop'].forEach(evt => {
+    dropZone.addEventListener(evt, e => {
+      e.preventDefault(); e.stopPropagation();
+      dropZone.classList.remove('dragover');
+    });
+  });
+  dropZone.addEventListener('drop', e => {
+    const file = e.dataTransfer.files && e.dataTransfer.files[0];
+    if (file) readFile(file);
+  });
+  // 初始化 AI 設定面板
+  renderProviderConfig();
+});
+
+// ============================================================
+//  ============ AI Provider configuration ============
+// ============================================================
+let currentProvider = 'gemini';
+// 已解鎖的供應商集合：gemini 永遠解鎖；其他由使用者點選後解鎖
+let unlockedProviders = (() => {
+  const base = new Set(['gemini']);
+  try {
+    const saved = JSON.parse(localStorage.getItem('ipo_unlocked') || '[]');
+    saved.forEach(p => base.add(p));
+  } catch(e){}
+  return base;
+})();
+
+const PROVIDER_INFO = {
+  claude_embed: {
+    label: 'Claude 內嵌模式',
+    needKey: false,
+    note: '此模式僅在 <b>Claude.ai 環境</b> 內可直接使用（你目前的對話視窗）。儲存成 HTML 檔在自己電腦開啟時，請改選其他供應商並輸入 API 金鑰。',
+    models: ['claude-sonnet-4-20250514'],
+    defaultModel: 'claude-sonnet-4-20250514',
+  },
+  gemini: {
+    label: 'Google Gemini',
+    needKey: true,
+    keyLink: 'https://aistudio.google.com/apikey',
+    keyLinkText: 'Google AI Studio',
+    note: '前往 <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">Google AI Studio</a> 免費取得 API 金鑰（個人帳號每分鐘有用量限制，但免費額度充足）。',
+    models: ['gemini-2.5-flash', 'gemini-2.5-pro', 'gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-1.5-pro'],
+    defaultModel: 'gemini-2.5-flash',
+  },
+  openai: {
+    label: 'OpenAI ChatGPT',
+    needKey: true,
+    keyLink: 'https://platform.openai.com/api-keys',
+    keyLinkText: 'OpenAI Platform',
+    note: '前往 <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener">OpenAI Platform</a> 取得金鑰（需信用卡儲值，依用量計費）。也可使用 OpenAI 相容端點（如自架 LM Studio）。',
+    models: ['gpt-4o-mini', 'gpt-4o', 'gpt-4.1', 'gpt-4.1-mini', 'gpt-5', 'gpt-5-mini'],
+    defaultModel: 'gpt-4o-mini',
+    showEndpoint: true,
+    defaultEndpoint: 'https://api.openai.com/v1',
+  },
+  anthropic: {
+    label: 'Anthropic Claude API',
+    needKey: true,
+    keyLink: 'https://console.anthropic.com/',
+    keyLinkText: 'Anthropic Console',
+    note: '前往 <a href="https://console.anthropic.com/" target="_blank" rel="noopener">Anthropic Console</a> 取得金鑰（需儲值，依用量計費）。',
+    models: ['claude-sonnet-4-5', 'claude-opus-4-5', 'claude-haiku-4-5', 'claude-sonnet-4-20250514'],
+    defaultModel: 'claude-sonnet-4-5',
+  },
+};
+
+function selectProvider(p){
+  // 若該供應商尚未解鎖，先彈出確認 modal
+  if (!unlockedProviders.has(p)){
+    showUnlockModal(p);
+    return;
+  }
+  currentProvider = p;
+  document.querySelectorAll('.provider-card').forEach(el => {
+    const isThis = el.dataset.provider === p;
+    el.classList.toggle('selected', isThis);
+    // 已解鎖者移除 locked 樣式
+    if (unlockedProviders.has(el.dataset.provider)){
+      el.classList.remove('locked');
+    }
+  });
+  renderProviderConfig();
+  // 清除舊測試訊息
+  const ts = document.getElementById('testStatus');
+  if (ts){ ts.textContent = ''; ts.className = 'status'; }
+}
+
+// 解鎖：把供應商加入清單後存到 localStorage 並切換到該選項
+function unlockProvider(p){
+  unlockedProviders.add(p);
+  try {
+    const arr = Array.from(unlockedProviders).filter(x => x !== 'gemini');
+    localStorage.setItem('ipo_unlocked', JSON.stringify(arr));
+  } catch(e){}
+  // 移除 locked 樣式
+  const card = document.querySelector(`.provider-card[data-provider="${p}"]`);
+  if (card) card.classList.remove('locked');
+  closeUnlockModal();
+  selectProvider(p);
+  showToast('✅ 已啟用：' + (PROVIDER_INFO[p]||{}).label);
+}
+
+function showUnlockModal(p){
+  const info = PROVIDER_INFO[p];
+  if (!info) return;
+  const needKeyTxt = info.needKey
+    ? `需要你自行到 <b><a href="${info.keyLink}" target="_blank" rel="noopener">${info.keyLinkText}</a></b> 取得 API 金鑰。`
+    : `此選項僅在 <b>Claude.ai 對話視窗中</b>可直接使用，下載成 HTML 檔本機開啟時無法呼叫 API。`;
+  document.getElementById('helpTitle').textContent = '🔓 啟用 ' + info.label;
+  document.getElementById('helpBody').innerHTML = `
+    <p>${needKeyTxt}</p>
+    <div style="display:flex;flex-direction:column;gap:8px;margin:14px 0 6px;">
+      <button class="btn btn-primary" style="justify-content:center;" onclick="unlockProvider('${p}')">✅ 我已準備好，啟用此選項</button>
+      ${info.keyLink ? `<a class="btn btn-secondary" style="justify-content:center;" href="${info.keyLink}" target="_blank" rel="noopener">🔗 先前往 ${info.keyLinkText} 取得金鑰</a>` : ''}
+      <button class="btn btn-ghost" style="justify-content:center;" onclick="closeUnlockModal()">取消，繼續使用 Gemini</button>
+    </div>
+    <div class="key-note" style="margin-top:10px;">${info.note}</div>
+  `;
+  document.getElementById('helpModal').classList.add('show');
+}
+function closeUnlockModal(){
+  document.getElementById('helpModal').classList.remove('show');
+}
+
+function renderProviderConfig(){
+  const info = PROVIDER_INFO[currentProvider];
+  const panel = document.getElementById('aiConfigPanel');
+  if (!info.needKey){
+    panel.innerHTML = `<div class="key-note">${info.note}</div>`;
+    return;
+  }
+  // 從 localStorage 還原
+  const savedKey = loadKey(currentProvider);
+  const savedModel = localStorage.getItem('ipo_model_' + currentProvider) || info.defaultModel;
+  const savedEndpoint = localStorage.getItem('ipo_endpoint_' + currentProvider) || info.defaultEndpoint || '';
+  const savedRemember = localStorage.getItem('ipo_remember_' + currentProvider) === '1';
+
+  let html = `
+    <div class="ai-config-row">
+      <div class="field-group">
+        <label>API 金鑰 <span class="req">*</span></label>
+        <div class="field-with-eye">
+          <input type="password" id="apiKey" placeholder="貼上 API 金鑰..." value="${escapeHtmlAttr(savedKey)}">
+          <button class="eye-btn" onclick="toggleKeyVisibility()" title="顯示/隱藏">👁</button>
+        </div>
+      </div>
+      <div class="field-group">
+        <label>模型</label>
+        <select id="modelSelect">
+          ${info.models.map(m => `<option value="${m}" ${m===savedModel?'selected':''}>${m}</option>`).join('')}
+        </select>
+      </div>
+    </div>
+  `;
+  if (info.showEndpoint){
+    html += `
+      <div class="ai-config-row" style="grid-template-columns:1fr;">
+        <div class="field-group">
+          <label>API 端點（OpenAI 相容服務可改填，預設為官方）</label>
+          <input type="text" id="apiEndpoint" placeholder="https://api.openai.com/v1" value="${escapeHtmlAttr(savedEndpoint)}">
+        </div>
+      </div>
+    `;
+  }
+  html += `
+    <div class="save-key-row">
+      <input type="checkbox" id="rememberKey" ${savedRemember?'checked':''}>
+      <label for="rememberKey" style="margin:0;cursor:pointer;font-weight:400;">記住此金鑰（儲存在本機瀏覽器，不會上傳）</label>
+    </div>
+    <div class="key-note">${info.note}</div>
+  `;
+  panel.innerHTML = html;
+}
+
+function toggleKeyVisibility(){
+  const el = document.getElementById('apiKey');
+  if (!el) return;
+  el.type = (el.type === 'password') ? 'text' : 'password';
+}
+
+function escapeHtmlAttr(s){
+  return (s || '').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function saveKey(provider, key){
+  if (key){
+    try { localStorage.setItem('ipo_key_' + provider, key); } catch(e){}
+  } else {
+    try { localStorage.removeItem('ipo_key_' + provider); } catch(e){}
+  }
+}
+function loadKey(provider){
+  try { return localStorage.getItem('ipo_key_' + provider) || ''; }
+  catch(e){ return ''; }
+}
+
+function getProviderConfig(){
+  const info = PROVIDER_INFO[currentProvider];
+  if (!info.needKey){
+    return { provider: currentProvider, info };
+  }
+  const apiKey = (document.getElementById('apiKey') || {}).value || '';
+  const model = (document.getElementById('modelSelect') || {}).value || info.defaultModel;
+  const endpoint = (document.getElementById('apiEndpoint') || {}).value || info.defaultEndpoint || '';
+  const remember = (document.getElementById('rememberKey') || {}).checked;
+
+  // 儲存
+  if (remember){
+    saveKey(currentProvider, apiKey);
+    localStorage.setItem('ipo_remember_' + currentProvider, '1');
+  } else {
+    saveKey(currentProvider, '');
+    localStorage.setItem('ipo_remember_' + currentProvider, '0');
+  }
+  try {
+    localStorage.setItem('ipo_model_' + currentProvider, model);
+    if (info.showEndpoint) localStorage.setItem('ipo_endpoint_' + currentProvider, endpoint);
+  } catch(e){}
+
+  return { provider: currentProvider, info, apiKey, model, endpoint };
+}
+
+async function testApiKey(){
+  const cfg = getProviderConfig();
+  const status = document.getElementById('testStatus');
+  status.textContent = '測試中…';
+  status.className = 'status';
+  if (cfg.provider === 'claude_embed'){
+    status.textContent = 'ℹ️ Claude 內嵌模式無需金鑰，會在按下「執行分析」時嘗試呼叫';
+    return;
+  }
+  if (!cfg.apiKey){
+    status.textContent = '⚠ 請先輸入 API 金鑰';
+    status.className = 'status err';
+    return;
+  }
+  const btn = document.getElementById('testKeyBtn');
+  btn.disabled = true;
+  try {
+    await callAI(cfg, '你是一個助手，請只回覆「OK」兩個字。', '請回覆 OK', { max_tokens: 10 });
+    status.textContent = '✅ 連線成功，金鑰有效';
+    status.className = 'status ok';
+    setStepDone(2, true);
+  } catch (err){
+    status.textContent = '❌ 失敗：' + (err.message || err);
+    status.className = 'status err';
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+// ============================================================
+//  ============ Unified AI caller ============
+// ============================================================
+async function callAI(cfg, systemPrompt, userMessage, opts){
+  opts = opts || {};
+  const maxTokens = opts.max_tokens || 6000;
+
+  if (cfg.provider === 'claude_embed'){
+    // 走 Claude.ai 內嵌（無金鑰）
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: cfg.info.defaultModel,
+        max_tokens: maxTokens,
+        system: systemPrompt,
+        messages: [{ role:'user', content: userMessage }]
+      })
+    });
+    const data = await resp.json();
+    if (data.error) throw new Error(data.error.message || 'API error');
+    return (data.content || []).filter(b => b.type === 'text').map(b => b.text).join('');
+  }
+
+  if (cfg.provider === 'anthropic'){
+    const realMax = Math.max(maxTokens, 8192);
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': cfg.apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true',
+      },
+      body: JSON.stringify({
+        model: cfg.model,
+        max_tokens: realMax,
+        system: systemPrompt,
+        messages: [{ role:'user', content: userMessage }]
+      })
+    });
+    const data = await resp.json();
+    if (data.error) throw new Error(data.error.message || data.error.type || 'Anthropic API 錯誤');
+    return (data.content || []).filter(b => b.type === 'text').map(b => b.text).join('');
+  }
+
+  if (cfg.provider === 'openai'){
+    const realMax = Math.max(maxTokens, 8192);
+    const base = (cfg.endpoint || 'https://api.openai.com/v1').replace(/\/+$/,'');
+    const resp = await fetch(base + '/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + cfg.apiKey,
+      },
+      body: JSON.stringify({
+        model: cfg.model,
+        max_tokens: realMax,
+        messages: [
+          { role:'system', content: systemPrompt },
+          { role:'user', content: userMessage }
+        ]
+      })
+    });
+    const data = await resp.json();
+    if (data.error) throw new Error(data.error.message || 'OpenAI API 錯誤');
+    return data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content || '';
+  }
+
+  if (cfg.provider === 'gemini'){
+    // 根據任務大小決定 token 預算。IPO 結構化輸出含 3 段程式碼，
+    // 加上 Gemini 2.5 的「思考 tokens」，預設給 16384 才夠用。
+    const realMax = Math.max(maxTokens, 16384);
+    const genConfig = {
+      maxOutputTokens: realMax,
+      temperature: 0.4,
+      // 移除回應結尾不必要 token
+      responseMimeType: 'text/plain'
+    };
+    // 對 2.5 系列關閉「思考」模式 ─ 我們要的是結構化標籤輸出，不需要 reasoning
+    if (/(^|[^\d])2\.?5/.test(cfg.model)){
+      genConfig.thinkingConfig = { thinkingBudget: 0 };
+    }
+    // 安全分級放寬到 BLOCK_NONE，避免程式碼被誤判為敏感內容
+    const safetySettings = [
+      'HARM_CATEGORY_HARASSMENT',
+      'HARM_CATEGORY_HATE_SPEECH',
+      'HARM_CATEGORY_SEXUALLY_EXPLICIT',
+      'HARM_CATEGORY_DANGEROUS_CONTENT',
+    ].map(category => ({ category, threshold: 'BLOCK_NONE' }));
+
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(cfg.model)}:generateContent?key=${encodeURIComponent(cfg.apiKey)}`;
+    const resp = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        systemInstruction: { parts: [{ text: systemPrompt }] },
+        contents: [{ role: 'user', parts: [{ text: userMessage }] }],
+        generationConfig: genConfig,
+        safetySettings: safetySettings,
+      })
+    });
+    const data = await resp.json();
+    if (data.error) throw new Error(data.error.message || 'Gemini API 錯誤');
+
+    const cands = data.candidates || [];
+    if (cands.length === 0){
+      const blockReason = data.promptFeedback && data.promptFeedback.blockReason;
+      throw new Error('Gemini 沒有回傳候選內容' + (blockReason ? `（封鎖原因：${blockReason}）` : '（請改試其他模型）'));
+    }
+    const cand = cands[0];
+    const finishReason = cand.finishReason || '';
+    const parts = (cand.content && cand.content.parts) || [];
+    const text = parts.map(p => p.text || '').join('');
+
+    // 紀錄到全域，方便除錯面板顯示
+    window._lastAICall = {
+      provider: 'gemini',
+      model: cfg.model,
+      finishReason,
+      usage: data.usageMetadata || {},
+      textLength: text.length,
+    };
+
+    // 若被 token 上限截斷，但內容仍夠長則放行；太短則直接回報
+    if (finishReason === 'MAX_TOKENS' && text.length < 500){
+      throw new Error(`Gemini 在僅輸出 ${text.length} 字元後就達到 token 上限。可能是「思考 tokens」吃太多額度。請在「步驟 2」改選 <b>gemini-2.0-flash</b> 或 <b>gemini-1.5-flash</b> 試試。`);
+    }
+    if (finishReason === 'SAFETY' || finishReason === 'RECITATION'){
+      throw new Error(`Gemini 因 ${finishReason} 中斷回應，請改用其他模型或手動模式。`);
+    }
+    return text;
+  }
+
+  throw new Error('未知的 AI 供應商：' + cfg.provider);
+}
+
+// ============================================================
+//  ============ Syntax highlight (unchanged) ============
+// ============================================================
 function escapeHtml(s){ return (s||'').replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
 function highlight(code){
   let h = escapeHtml(code || '');
@@ -584,7 +1476,6 @@ function highlight(code){
           .replace(/\x00B([^\x00]+)\x00/g, '<span class="b">$1</span>');
 }
 
-// ============ Copy code ============
 function copyCode(btn, text){
   navigator.clipboard.writeText(text);
   const orig = btn.textContent;
@@ -592,7 +1483,9 @@ function copyCode(btn, text){
   setTimeout(()=>{ btn.textContent = orig; }, 1200);
 }
 
-// ============ AI Analysis ============
+// ============================================================
+//  ============ AI System Prompt ============
+// ============================================================
 let chartInstance = null;
 let lastAnalysis = null;
 
@@ -708,65 +1601,173 @@ Y 軸標籤（圓餅圖可空）
 
 要求：improvements 各模組 3 點；optimized 程式碼必須完整可執行；所有中文標籤用繁體中文；圖表類型依資料特性選擇（比較→bar、比例→pie、趨勢→line）。**標籤名稱必須完全一致**`;
 
+// ============================================================
+//  ============ Main analyze ============
+// ============================================================
 async function analyze(){
   const code = document.getElementById('userCode').value.trim();
-  if (!code){ alert('請先貼上你的專題程式碼'); return; }
+  if (!code){
+    alert('請先貼上你的專題程式碼，或上傳檔案');
+    goToStep(1);
+    return;
+  }
+  setStepDone(1, true);
+
+  const cfg = getProviderConfig();
+  if (cfg.info.needKey && !cfg.apiKey){
+    document.getElementById('errorBox').innerHTML =
+      `<div class="err">⚠ 請先在 <b>步驟 2</b> 輸入 ${escapeHtml(cfg.info.label)} 的 API 金鑰。</div>`;
+    goToStep(2);
+    return;
+  }
 
   const btn = document.getElementById('goBtn');
   const lbl = document.getElementById('goLabel');
   btn.disabled = true;
-  lbl.innerHTML = '<span class="spinner"></span> AI 分析中…請稍候 10-20 秒';
+  lbl.innerHTML = '<span class="spinner"></span> AI 分析中…請稍候 10-30 秒';
   document.getElementById('errorBox').innerHTML = '';
   document.getElementById('result').classList.remove('show');
   document.getElementById('manualMode').style.display = 'none';
 
   try {
-    const resp = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 6000,
-        system: SYSTEM_PROMPT,
-        messages: [{
-          role: 'user',
-          content: `學生的專題程式碼：\n\`\`\`python\n${code}\n\`\`\`\n\n請依照系統訊息的分隔標籤格式生成回應。`
-        }]
-      })
-    });
-    const data = await resp.json();
-    if (data.error) throw new Error(data.error.message || 'API error');
-
-    const raw = (data.content || []).filter(b => b.type === 'text').map(b => b.text).join('').trim();
+    const userMessage = `學生的專題程式碼：\n\`\`\`python\n${code}\n\`\`\`\n\n請依照系統訊息的分隔標籤格式生成回應。`;
+    const raw = (await callAI(cfg, SYSTEM_PROMPT, userMessage)).trim();
     const parsed = parseAIResponse(raw);
 
-    if (!parsed.modules.input.optimized || !parsed.modules.process.optimized || !parsed.modules.output.optimized){
-      console.error('Raw AI response:', raw);
-      throw new Error('AI 回應內容不完整，請改用手動模式');
+    // 記錄最近一次原始回應，方便除錯
+    window._lastRawResponse = raw;
+
+    // 三個 optimized 都缺 → 直接失敗
+    const miss = {
+      input: !parsed.modules.input.optimized,
+      process: !parsed.modules.process.optimized,
+      output: !parsed.modules.output.optimized,
+    };
+    const missCount = (miss.input?1:0)+(miss.process?1:0)+(miss.output?1:0);
+
+    if (missCount === 3){
+      throw new Error('AI 回應未包含任何 IPO 區段標籤，請檢視原始回應');
+    }
+    // 1-2 個缺失：顯示警告但仍嘗試渲染，並於除錯區提示
+    if (missCount > 0){
+      const missLabels = Object.keys(miss).filter(k => miss[k]).join('、');
+      document.getElementById('errorBox').innerHTML =
+        `<div class="err" style="background:#FFF6E0;border-color:#CAA23C;color:#7a5a13;">
+          ⚠ 部分區段缺失：<b>${missLabels}</b>。已渲染可解析的內容；缺失區可重新分析或改用手動模式。
+        </div>`;
     }
 
     lastAnalysis = parsed;
     renderResult(parsed);
+    setStepDone(2, true);
+    setStepDone(3, true);
+    goToStep(4);
   } catch (err){
     const msg = (err && err.message) || String(err);
-    // Detect "Failed to fetch" / CORS / network errors → auto switch to manual mode
+    const raw = window._lastRawResponse || '';
     const isNetworkError = msg.includes('Failed to fetch') || msg.includes('NetworkError') ||
                            msg.includes('CORS') || err instanceof TypeError;
-    if (isNetworkError){
+    if (isNetworkError && cfg.provider === 'claude_embed'){
       document.getElementById('errorBox').innerHTML =
-        `<div class="err">ℹ️ 偵測到此環境無法直接呼叫 AI（${escapeHtml(msg)}）。已為你切換到 <b>Gemini 手動分析模式</b>。</div>`;
-      enterManualMode();
+        `<div class="err">ℹ️ 偵測到此環境無法直接呼叫 Claude 內嵌 API。建議改選 <b>Gemini</b> 並輸入金鑰，或使用下方 <b>手動複製貼上</b> 模式。</div>`;
+      goToStep(2);
     } else {
+      // 完整錯誤面板（含原始回應、診斷資訊、操作建議）
       document.getElementById('errorBox').innerHTML =
-        `<div class="err">⚠ 發生錯誤：${escapeHtml(msg)}。請改用下方「📋 改用 Gemini 手動分析」按鈕。</div>`;
+        `<div class="err">⚠ 發生錯誤：${escapeHtml(msg)}<br><br>
+          <b>建議步驟：</b>
+          <ol style="margin:6px 0 0 18px;">
+            <li>確認 API 金鑰正確（步驟 2 → 🔌 測試連線）</li>
+            <li>檢視下方除錯資訊找出原因</li>
+            <li>若 Gemini 內容過短，可改試 <code>gemini-2.0-flash</code> 或 <code>gemini-1.5-flash</code></li>
+            <li>改用「📋 手動複製貼上」模式（免金鑰）</li>
+          </ol>
+        </div>
+        ${raw ? buildDebugPanel(raw) : ''}`;
     }
   } finally {
     btn.disabled = false;
-    lbl.textContent = '🤖 自動分析（在 Claude.ai 內）';
+    lbl.textContent = '🚀 開始 AI 分析';
   }
 }
 
-// ============ Manual mode (works without API) ============
+// 除錯面板：當 AI 回應有問題時，顯示原始內容與診斷
+function buildDebugPanel(raw){
+  const markers = ['META','INPUT_EXPLANATION','INPUT_IMPROVEMENTS','INPUT_ORIGINAL','INPUT_OPTIMIZED','INPUT_EXEC',
+                   'PROCESS_EXPLANATION','PROCESS_IMPROVEMENTS','PROCESS_ORIGINAL','PROCESS_OPTIMIZED','PROCESS_EXEC',
+                   'OUTPUT_EXPLANATION','OUTPUT_IMPROVEMENTS','OUTPUT_ORIGINAL','OUTPUT_OPTIMIZED','OUTPUT_EXEC',
+                   'OUTPUT_CHART_TYPE','OUTPUT_CHART_TITLE','OUTPUT_CHART_LABELS','OUTPUT_CHART_VALUES'];
+  const found = markers.map(m => ({m, has: raw.includes('['+m+']') && raw.includes('[/'+m+']')}));
+  const okCount = found.filter(x => x.has).length;
+  const callMeta = window._lastAICall || {};
+
+  return `
+    <details class="debug-panel" open>
+      <summary>🔍 點此展開除錯資訊（原始 AI 回應與診斷）</summary>
+      <div class="diag-grid">
+        <span class="diag-key">回應長度</span>
+        <span class="diag-val">${raw.length.toLocaleString()} 字元</span>
+        <span class="diag-key">回應行數</span>
+        <span class="diag-val">${raw.split('\n').length}</span>
+        <span class="diag-key">標籤完整度</span>
+        <span class="diag-val ${okCount===markers.length?'ok':'err'}">${okCount} / ${markers.length} 個區段完整</span>
+        ${callMeta.finishReason ? `
+        <span class="diag-key">結束原因</span>
+        <span class="diag-val ${callMeta.finishReason==='STOP'?'ok':'err'}">${escapeHtml(callMeta.finishReason)}</span>
+        ` : ''}
+        ${callMeta.usage && callMeta.usage.totalTokenCount ? `
+        <span class="diag-key">Token 用量</span>
+        <span class="diag-val">輸入 ${callMeta.usage.promptTokenCount||0} ／ 輸出 ${callMeta.usage.candidatesTokenCount||0} ／ 思考 ${callMeta.usage.thoughtsTokenCount||0} ／ 總計 ${callMeta.usage.totalTokenCount||0}</span>
+        ` : ''}
+        <span class="diag-key">缺失標籤</span>
+        <span class="diag-val err">${found.filter(x=>!x.has).map(x=>x.m).join(', ') || '無'}</span>
+      </div>
+      <div class="raw-actions">
+        <button onclick="copyRawResponse()">📋 複製原始回應</button>
+        <button onclick="reparseFromDebug()">🔄 重新嘗試解析</button>
+        <button onclick="sendRawToManual()">➡ 送到手動模式解析</button>
+      </div>
+      <div class="raw-box">${escapeHtml(raw)}</div>
+    </details>
+  `;
+}
+
+function copyRawResponse(){
+  const raw = window._lastRawResponse || '';
+  if (!raw){ showToast('沒有原始回應可複製'); return; }
+  navigator.clipboard.writeText(raw).then(()=>showToast('✅ 已複製原始回應'));
+}
+function reparseFromDebug(){
+  const raw = window._lastRawResponse || '';
+  if (!raw) return;
+  try {
+    const parsed = parseAIResponse(raw);
+    if (parsed.modules.input.optimized || parsed.modules.process.optimized || parsed.modules.output.optimized){
+      lastAnalysis = parsed;
+      renderResult(parsed);
+      document.getElementById('errorBox').innerHTML = '';
+      setStepDone(3, true);
+      goToStep(4);
+      showToast('✅ 重新解析成功');
+    } else {
+      showToast('⚠ 仍無法解析，請改用手動模式');
+    }
+  } catch(e){
+    showToast('⚠ 解析失敗：' + e.message);
+  }
+}
+function sendRawToManual(){
+  const raw = window._lastRawResponse || '';
+  enterManualMode();
+  setTimeout(()=>{
+    document.getElementById('manualResponse').value = raw;
+    showToast('已把原始回應放進手動解析區，請按「✨ 解析並產出」');
+  }, 200);
+}
+
+// ============================================================
+//  ============ Manual mode ============
+// ============================================================
 function buildManualPrompt(code){
   return `以下是專題程式 IPO 模組分析任務。請嚴格依照分隔標籤格式回應，**不要回傳 JSON、不要 markdown 程式碼框、不要前言後語**：
 
@@ -784,10 +1785,15 @@ ${code}
 
 function enterManualMode(){
   const code = document.getElementById('userCode').value.trim();
-  if (!code){ alert('請先貼上你的專題程式碼'); return; }
+  if (!code){
+    alert('請先貼上你的專題程式碼，或上傳檔案');
+    goToStep(1);
+    return;
+  }
   document.getElementById('manualPrompt').value = buildManualPrompt(code);
   document.getElementById('manualResponse').value = '';
   document.getElementById('manualMode').style.display = 'block';
+  goToStep(3);
   setTimeout(()=>document.getElementById('manualMode').scrollIntoView({behavior:'smooth',block:'start'}), 100);
 }
 
@@ -799,9 +1805,8 @@ function exitManualMode(){
 function copyManualPrompt(){
   const text = document.getElementById('manualPrompt').value;
   navigator.clipboard.writeText(text).then(()=>{
-    showToast('✅ 提示語已複製，請貼到 Gemini');
+    showToast('✅ 提示語已複製，請貼到 AI 工具');
   }).catch(()=>{
-    // Fallback for older browsers
     document.getElementById('manualPrompt').select();
     document.execCommand('copy');
     showToast('✅ 提示語已複製');
@@ -810,32 +1815,41 @@ function copyManualPrompt(){
 
 function parseManualResponse(){
   const raw = document.getElementById('manualResponse').value.trim();
-  if (!raw){
-    alert('請先把 Gemini 的回應貼進來');
-    return;
-  }
+  if (!raw){ alert('請先把 AI 的回應貼進來'); return; }
   try {
     const parsed = parseAIResponse(raw);
     if (!parsed.modules.input.optimized || !parsed.modules.process.optimized || !parsed.modules.output.optimized){
-      throw new Error('回應內容不完整，請確認你貼的是 Gemini 的完整回覆（從 [META] 開始到 [/OUTPUT_CHART_VALUES] 結束）');
+      throw new Error('回應內容不完整，請確認你貼的是 AI 的完整回覆（從 [META] 開始到 [/OUTPUT_CHART_VALUES] 結束）');
     }
     lastAnalysis = parsed;
     renderResult(parsed);
     showToast('✅ 解析成功');
     document.getElementById('manualMode').style.display = 'none';
     document.getElementById('errorBox').innerHTML = '';
+    setStepDone(1, true);
+    setStepDone(2, true);
+    setStepDone(3, true);
+    goToStep(4);
   } catch (err){
     document.getElementById('errorBox').innerHTML =
       `<div class="err">⚠ 解析失敗：${escapeHtml(err.message || String(err))}</div>`;
   }
 }
 
-// ============ Delimiter-based parser ============
+// ============================================================
+//  ============ Parser (unchanged) ============
+// ============================================================
 function extractSection(text, marker){
-  // Match [MARKER]\n...\n[/MARKER]  (tolerant of trailing whitespace)
-  const re = new RegExp(`\\[${marker}\\]\\s*\\r?\\n([\\s\\S]*?)\\r?\\n\\s*\\[\\/${marker}\\]`, 'i');
+  // 寬容版：允許標籤後立即接內容（不一定要換行），也允許大小寫差異
+  // 1) 標準格式 [MARKER]\n...\n[/MARKER]
+  // 2) 緊湊格式 [MARKER]...[/MARKER]
+  const re = new RegExp(`\\[${marker}\\]\\s*([\\s\\S]*?)\\s*\\[\\/${marker}\\]`, 'i');
   const m = text.match(re);
-  return m ? m[1].trim() : '';
+  if (m) return m[1].trim();
+  // 3) 萬一 AI 用 ** 或 ## 改寫了標籤
+  const altRe = new RegExp(`(?:\\*\\*|##\\s*)?\\[${marker}\\](?:\\*\\*)?\\s*([\\s\\S]*?)\\s*(?:\\*\\*|##\\s*)?\\[\\/${marker}\\]`, 'i');
+  const m2 = text.match(altRe);
+  return m2 ? m2[1].trim() : '';
 }
 
 function parseList(text){
@@ -851,13 +1865,22 @@ function parseNumberList(text){
 
 function parseAIResponse(raw){
   let text = (raw || '').trim();
-  // Strip optional outer markdown fences
-  text = text.replace(/^```[a-z]*\s*\n?/i, '').replace(/\n?\s*```\s*$/i, '');
-  // Skip preamble: find first [META]
+  // 去除可能的最外層 markdown code fence（多次嘗試）
+  for (let i = 0; i < 3; i++){
+    const before = text;
+    text = text.replace(/^```[a-zA-Z]*\s*\r?\n?/, '').replace(/\r?\n?\s*```\s*$/, '');
+    text = text.trim();
+    if (text === before) break;
+  }
+  // 去除類似「以下是分析結果：」這種前言（一直到第一個 [META]）
   const metaStart = text.indexOf('[META]');
   if (metaStart > 0) text = text.slice(metaStart);
+  // 去除尾端可能多餘的 markdown 標記或祝福語（在最後一個 [/OUTPUT_CHART_VALUES] 之後砍掉）
+  const lastCloseIdx = text.lastIndexOf('[/OUTPUT_CHART_VALUES]');
+  if (lastCloseIdx >= 0){
+    text = text.slice(0, lastCloseIdx + '[/OUTPUT_CHART_VALUES]'.length);
+  }
 
-  // Parse META key=value pairs
   const meta = {};
   const metaContent = extractSection(text, 'META');
   metaContent.split('\n').forEach(line => {
@@ -865,11 +1888,17 @@ function parseAIResponse(raw){
     if (m) meta[m[1].toLowerCase()] = m[2].trim();
   });
 
+  // 去掉每段程式碼欄位內可能的 ```python ... ``` 包裹
+  const stripCodeFence = (s) => {
+    if (!s) return s;
+    return s.replace(/^```[a-zA-Z]*\s*\r?\n?/, '').replace(/\r?\n?\s*```\s*$/, '').trim();
+  };
+
   const buildModule = (prefix) => ({
     explanation: extractSection(text, `${prefix}_EXPLANATION`),
     improvements: parseList(extractSection(text, `${prefix}_IMPROVEMENTS`)),
-    original: extractSection(text, `${prefix}_ORIGINAL`),
-    optimized: extractSection(text, `${prefix}_OPTIMIZED`),
+    original: stripCodeFence(extractSection(text, `${prefix}_ORIGINAL`)),
+    optimized: stripCodeFence(extractSection(text, `${prefix}_OPTIMIZED`)),
     exec_text: extractSection(text, `${prefix}_EXEC`),
   });
 
@@ -883,7 +1912,6 @@ function parseAIResponse(raw){
     },
   };
 
-  // Chart data
   result.modules.output.chart = {
     type: (extractSection(text, 'OUTPUT_CHART_TYPE').toLowerCase().match(/(bar|pie|line)/) || ['bar'])[0],
     title: extractSection(text, 'OUTPUT_CHART_TITLE'),
@@ -1003,19 +2031,19 @@ function renderChart(c){
   });
 }
 
-// ============ Downloads ============
+// ============================================================
+//  ============ Downloads (PDF / images / ipynb) ============
+// ============================================================
 async function downloadPDF(){
   if (!lastAnalysis){ showToast('請先執行 AI 分析'); return; }
   const btn = document.getElementById('pdfBtn');
   btn.disabled = true;
   showToast('正在製作 PDF…請稍候');
-
   try {
     const { jsPDF } = window.jspdf;
     const pdf = new jsPDF('p', 'mm', 'a4');
     const slides = ['slide-input', 'slide-process', 'slide-output'];
     const W = 210, H = 297, M = 8;
-
     for (let i = 0; i < slides.length; i++){
       const el = document.getElementById(slides[i]);
       const canvas = await html2canvas(el, { scale: 2, backgroundColor: '#ffffff', useCORS: true });
@@ -1029,6 +2057,7 @@ async function downloadPDF(){
     const fname = `${lastAnalysis.project_type || '專題'}_IPO對照.pdf`;
     pdf.save(fname);
     showToast('✅ PDF 已下載');
+    setStepDone(5, true);
   } catch (e){
     console.error(e); showToast('⚠ PDF 製作失敗：' + e.message);
   } finally {
@@ -1041,7 +2070,6 @@ async function downloadImages(){
   const btn = document.getElementById('imgBtn');
   btn.disabled = true;
   showToast('正在製作圖片…請稍候');
-
   try {
     const slides = [
       { id: 'slide-input',   name: 'Step1_Input友善化' },
@@ -1062,6 +2090,7 @@ async function downloadImages(){
       await new Promise(r => setTimeout(r, 600));
     }
     showToast('✅ 3 張圖片已下載');
+    setStepDone(5, true);
   } catch (e){
     console.error(e); showToast('⚠ 圖片製作失敗：' + e.message);
   } finally {
@@ -1073,81 +2102,52 @@ function downloadIpynb(){
   if (!lastAnalysis){ showToast('請先執行 AI 分析'); return; }
   const d = lastAnalysis;
 
-  // Helper to convert string to lines array (jupyter source format)
   const lines = (str) => {
     const arr = (str || '').split('\n');
     return arr.map((l, i) => i < arr.length - 1 ? l + '\n' : l);
   };
-
-  // Generate short unique id per cell (nbformat 4.5+ recommends it)
   let cellIdCounter = 0;
   const newId = () => `cell-${(++cellIdCounter).toString().padStart(3, '0')}-${Math.random().toString(36).slice(2, 8)}`;
-
-  const mkMarkdown = (src) => ({
-    cell_type: 'markdown',
-    id: newId(),
-    metadata: {},
-    source: lines(src),
-  });
-  const mkCode = (src) => ({
-    cell_type: 'code',
-    id: newId(),
-    execution_count: null,
-    metadata: {},
-    outputs: [],
-    source: lines(src),
-  });
+  const mkMarkdown = (src) => ({ cell_type:'markdown', id:newId(), metadata:{}, source:lines(src) });
+  const mkCode = (src) => ({ cell_type:'code', id:newId(), execution_count:null, metadata:{}, outputs:[], source:lines(src) });
 
   const inputMod = d.modules.input || {};
   const processMod = d.modules.process || {};
   const outputMod = d.modules.output || {};
 
   const cells = [
-    mkMarkdown(
-`# ${d.project_type || '專題系統'} ─ IPO 模組優化版
+    mkMarkdown(`# ${d.project_type || '專題系統'} ─ IPO 模組優化版
 
 > ${d.project_desc || ''}
 
-本筆記本由 **專題系統 IPO 模組分析器** 自動生成，包含三段優化後的程式碼：
+本筆記本由 **專題系統 IPO 模組分析器 v2.0** 自動生成，包含三段優化後的程式碼：
 - **STEP 1　📥 INPUT 友善化** ─ ipywidgets 互動介面
 - **STEP 2　⚙️ PROCESS 模組化** ─ function 整理邏輯
 - **STEP 3　📊 OUTPUT 視覺化** ─ matplotlib 圖表展示
 
 > 使用方式：請按順序執行下方各儲存格（Shift + Enter）。
 
----`
-    ),
-
-    // STEP 1
-    mkMarkdown(
-`## STEP 1　📥 INPUT 友善化
+---`),
+    mkMarkdown(`## STEP 1　📥 INPUT 友善化
 
 **改進重點：**
 ${(inputMod.improvements || []).map(x => '- ' + x).join('\n')}
 
-**說明：** ${inputMod.explanation || ''}`
-    ),
+**說明：** ${inputMod.explanation || ''}`),
     mkMarkdown(`### 安裝 ipywidgets（第一次執行）`),
     mkCode(`!pip install ipywidgets`),
     mkMarkdown(`### Input 介面程式碼`),
     mkCode(inputMod.optimized || ''),
-
-    // STEP 2
-    mkMarkdown(
-`---
+    mkMarkdown(`---
 
 ## STEP 2　⚙️ PROCESS 模組化
 
 **改進重點：**
 ${(processMod.improvements || []).map(x => '- ' + x).join('\n')}
 
-**說明：** ${processMod.explanation || ''}`
-    ),
+**說明：** ${processMod.explanation || ''}`),
     mkCode(processMod.optimized || ''),
-
-    // STEP 3
-    mkMarkdown(
-`---
+    mkMarkdown(`---
 
 ## STEP 3　📊 OUTPUT 視覺化
 
@@ -1156,12 +2156,9 @@ ${(outputMod.improvements || []).map(x => '- ' + x).join('\n')}
 
 **說明：** ${outputMod.explanation || ''}
 
-> ⚠️ 第一次執行會安裝中文字型，需稍候約 5 秒；若仍有方框，請重啟 runtime 後再執行一次。`
-    ),
+> ⚠️ 第一次執行會安裝中文字型，需稍候約 5 秒；若仍有方框，請重啟 runtime 後再執行一次。`),
     mkCode(outputMod.optimized || ''),
-
-    mkMarkdown(
-`---
+    mkMarkdown(`---
 
 ## 📋 原始程式碼存底（供對照用）
 
@@ -1169,28 +2166,17 @@ ${(outputMod.improvements || []).map(x => '- ' + x).join('\n')}
 ${document.getElementById('userCode').value}
 \`\`\`
 
-> 本筆記本由 [專題系統 IPO 模組分析器] 自動生成。`
-    ),
+> 本筆記本由 [專題系統 IPO 模組分析器 v2.0] 自動生成。`),
   ];
 
   const notebook = {
     cells: cells,
     metadata: {
-      kernelspec: {
-        display_name: 'Python 3',
-        language: 'python',
-        name: 'python3',
-      },
-      language_info: {
-        name: 'python',
-        version: '3.10',
-      },
-      colab: {
-        provenance: [],
-      },
+      kernelspec: { display_name:'Python 3', language:'python', name:'python3' },
+      language_info: { name:'python', version:'3.10' },
+      colab: { provenance: [] },
     },
-    nbformat: 4,
-    nbformat_minor: 5,
+    nbformat: 4, nbformat_minor: 5,
   };
 
   const json = JSON.stringify(notebook, null, 1);
@@ -1202,7 +2188,371 @@ ${document.getElementById('userCode').value}
   document.body.appendChild(a); a.click(); document.body.removeChild(a);
   setTimeout(()=>URL.revokeObjectURL(url), 1000);
   showToast('✅ Jupyter 筆記本已下載');
+  setStepDone(5, true);
 }
+
+// ============================================================
+//  ============ Operation Manual (HTML + PDF) ============
+// ============================================================
+function buildManualHtml(){
+  const d = lastAnalysis;
+  const projectType = (d && d.project_type) || '專題系統';
+  const now = new Date().toLocaleString('zh-TW', { dateStyle:'long', timeStyle:'short' });
+
+  // SVG 流程圖
+  const flowSvg = `
+<svg viewBox="0 0 720 200" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:720px;display:block;margin:14px auto;">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#7B4FB1"/>
+    </marker>
+  </defs>
+  <!-- 5 個步驟方塊 -->
+  ${[
+    {x:20, fill:'#E7F0FA', stroke:'#2B6CB0', icon:'📝', label:'1. 輸入程式碼', sub:'貼上 / 上傳'},
+    {x:160, fill:'#F0E8F8', stroke:'#7B4FB1', icon:'🔑', label:'2. AI 設定', sub:'選供應商+金鑰'},
+    {x:300, fill:'#FDEEDE', stroke:'#D97215', icon:'🚀', label:'3. 執行分析', sub:'AI 自動處理'},
+    {x:440, fill:'#E3F3E9', stroke:'#2F855A', icon:'👁', label:'4. 檢視結果', sub:'IPO 三模組'},
+    {x:580, fill:'#FFF6E0', stroke:'#CAA23C', icon:'📥', label:'5. 下載資源', sub:'PDF/IPYNB/手冊'},
+  ].map((s, i) => `
+    <rect x="${s.x}" y="50" width="120" height="100" rx="10" fill="${s.fill}" stroke="${s.stroke}" stroke-width="2"/>
+    <text x="${s.x+60}" y="85" text-anchor="middle" font-size="28">${s.icon}</text>
+    <text x="${s.x+60}" y="118" text-anchor="middle" font-size="13" font-weight="700" fill="#21303B" font-family="Noto Sans TC">${s.label}</text>
+    <text x="${s.x+60}" y="135" text-anchor="middle" font-size="10.5" fill="#5d6b74" font-family="Noto Sans TC">${s.sub}</text>
+    ${i < 4 ? `<line x1="${s.x+125}" y1="100" x2="${s.x+155}" y2="100" stroke="#7B4FB1" stroke-width="2.5" marker-end="url(#arr)"/>` : ''}
+  `).join('')}
+  <text x="360" y="30" text-anchor="middle" font-size="16" font-weight="900" fill="#21303B" font-family="Noto Serif TC">📋 完整操作流程</text>
+  <text x="360" y="185" text-anchor="middle" font-size="11" fill="#5d6b74" font-family="Noto Sans TC">依數字順序操作，每步驟完成後會自動跳到下一步</text>
+</svg>`;
+
+  // IPO 概念圖
+  const ipoSvg = `
+<svg viewBox="0 0 700 220" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:700px;display:block;margin:14px auto;">
+  <defs>
+    <marker id="arr2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#21303B"/>
+    </marker>
+  </defs>
+  <text x="350" y="28" text-anchor="middle" font-size="16" font-weight="900" fill="#21303B" font-family="Noto Serif TC">📦 IPO 三模組分析概念</text>
+  <!-- Input -->
+  <rect x="40" y="70" width="170" height="110" rx="12" fill="#E7F0FA" stroke="#2B6CB0" stroke-width="2.5"/>
+  <text x="125" y="100" text-anchor="middle" font-size="32">📥</text>
+  <text x="125" y="132" text-anchor="middle" font-size="14" font-weight="900" fill="#2B6CB0" font-family="Noto Sans TC">INPUT</text>
+  <text x="125" y="151" text-anchor="middle" font-size="11.5" fill="#21303B" font-family="Noto Sans TC">輸入模組</text>
+  <text x="125" y="168" text-anchor="middle" font-size="10.5" fill="#5d6b74" font-family="Noto Sans TC">ipywidgets 友善化</text>
+  <!-- Process -->
+  <rect x="265" y="70" width="170" height="110" rx="12" fill="#FDEEDE" stroke="#D97215" stroke-width="2.5"/>
+  <text x="350" y="100" text-anchor="middle" font-size="32">⚙️</text>
+  <text x="350" y="132" text-anchor="middle" font-size="14" font-weight="900" fill="#D97215" font-family="Noto Sans TC">PROCESS</text>
+  <text x="350" y="151" text-anchor="middle" font-size="11.5" fill="#21303B" font-family="Noto Sans TC">處理模組</text>
+  <text x="350" y="168" text-anchor="middle" font-size="10.5" fill="#5d6b74" font-family="Noto Sans TC">function 模組化</text>
+  <!-- Output -->
+  <rect x="490" y="70" width="170" height="110" rx="12" fill="#E3F3E9" stroke="#2F855A" stroke-width="2.5"/>
+  <text x="575" y="100" text-anchor="middle" font-size="32">📊</text>
+  <text x="575" y="132" text-anchor="middle" font-size="14" font-weight="900" fill="#2F855A" font-family="Noto Sans TC">OUTPUT</text>
+  <text x="575" y="151" text-anchor="middle" font-size="11.5" fill="#21303B" font-family="Noto Sans TC">輸出模組</text>
+  <text x="575" y="168" text-anchor="middle" font-size="10.5" fill="#5d6b74" font-family="Noto Sans TC">matplotlib 視覺化</text>
+  <!-- arrows -->
+  <line x1="215" y1="125" x2="260" y2="125" stroke="#21303B" stroke-width="2" marker-end="url(#arr2)"/>
+  <line x1="440" y1="125" x2="485" y2="125" stroke="#21303B" stroke-width="2" marker-end="url(#arr2)"/>
+  <text x="350" y="208" text-anchor="middle" font-size="11" fill="#5d6b74" font-family="Noto Sans TC">資料流：輸入 → 處理 → 輸出（資訊系統的基本三段結構）</text>
+</svg>`;
+
+  // AI 比較表
+  const aiCompareSvg = `
+<svg viewBox="0 0 700 240" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:700px;display:block;margin:14px auto;">
+  <text x="350" y="25" text-anchor="middle" font-size="15" font-weight="900" fill="#21303B" font-family="Noto Serif TC">🔑 四種 AI 供應商比較</text>
+  <!-- 表頭 -->
+  <rect x="30" y="45" width="640" height="32" fill="#7B4FB1"/>
+  <text x="100" y="66" text-anchor="middle" font-size="13" font-weight="700" fill="#fff" font-family="Noto Sans TC">供應商</text>
+  <text x="240" y="66" text-anchor="middle" font-size="13" font-weight="700" fill="#fff" font-family="Noto Sans TC">是否要金鑰</text>
+  <text x="390" y="66" text-anchor="middle" font-size="13" font-weight="700" fill="#fff" font-family="Noto Sans TC">費用</text>
+  <text x="560" y="66" text-anchor="middle" font-size="13" font-weight="700" fill="#fff" font-family="Noto Sans TC">取得位置</text>
+  ${[
+    {p:'🪶 Claude 內嵌', k:'不需', f:'免費（限 Claude.ai 內）', l:'本工具自動使用'},
+    {p:'✨ Gemini ★', k:'需要', f:'免費額度', l:'aistudio.google.com'},
+    {p:'🤖 ChatGPT', k:'需要', f:'按用量計費', l:'platform.openai.com'},
+    {p:'🧠 Claude API', k:'需要', f:'按用量計費', l:'console.anthropic.com'},
+  ].map((r, i) => `
+    <rect x="30" y="${77 + i*40}" width="640" height="40" fill="${i%2===0?'#FBF7EF':'#fff'}" stroke="#D8CFBE" stroke-width="0.5"/>
+    <text x="100" y="${102 + i*40}" text-anchor="middle" font-size="12" fill="#21303B" font-family="Noto Sans TC">${r.p}</text>
+    <text x="240" y="${102 + i*40}" text-anchor="middle" font-size="12" fill="#21303B" font-family="Noto Sans TC">${r.k}</text>
+    <text x="390" y="${102 + i*40}" text-anchor="middle" font-size="11.5" fill="#21303B" font-family="Noto Sans TC">${r.f}</text>
+    <text x="560" y="${102 + i*40}" text-anchor="middle" font-size="11" fill="#5d6b74" font-family="JetBrains Mono">${r.l}</text>
+  `).join('')}
+  <text x="350" y="232" text-anchor="middle" font-size="11" fill="#5d6b74" font-family="Noto Sans TC">★ 推薦學生使用：Gemini 有免費額度，註冊簡單</text>
+</svg>`;
+
+  return `<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<title>專題系統 IPO 模組分析器 ─ 操作手冊</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=Noto+Serif+TC:wght@700;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  body{font-family:"Noto Sans TC",sans-serif;color:#21303B;line-height:1.7;
+       max-width:900px;margin:0 auto;padding:30px 25px;background:#FBF7EF;}
+  h1{font-family:"Noto Serif TC",serif;font-size:28px;border-bottom:3px solid #7B4FB1;
+     padding-bottom:8px;margin-bottom:6px;}
+  h2{font-family:"Noto Serif TC",serif;font-size:20px;color:#7B4FB1;
+     margin-top:28px;margin-bottom:10px;border-left:5px solid #7B4FB1;padding-left:10px;}
+  h3{font-size:16px;color:#2B6CB0;margin-top:18px;margin-bottom:6px;}
+  .meta{color:#5d6b74;font-size:13px;margin-bottom:18px;}
+  .step-box{background:#fff;border:1.5px solid #D8CFBE;border-radius:11px;
+     padding:16px 20px;margin:14px 0;box-shadow:0 2px 6px rgba(0,0,0,.04);}
+  .step-num{display:inline-block;background:#7B4FB1;color:#fff;
+     width:30px;height:30px;border-radius:50%;text-align:center;line-height:30px;
+     font-weight:900;font-family:"Noto Serif TC",serif;margin-right:8px;}
+  ul,ol{padding-left:24px;}
+  li{margin-bottom:4px;}
+  code{background:#FBF7EF;padding:2px 6px;border-radius:4px;
+       font-family:"JetBrains Mono",monospace;font-size:13px;color:#7a5a13;}
+  .tip{background:#FFF6E0;border-left:4px solid #CAA23C;padding:9px 14px;
+       border-radius:6px;font-size:13.5px;margin:10px 0;}
+  .tip b{color:#a9781b;}
+  .warn{background:#FDE4DC;border-left:4px solid #C0563F;padding:9px 14px;
+        border-radius:6px;font-size:13.5px;margin:10px 0;}
+  table{width:100%;border-collapse:collapse;margin:12px 0;font-size:13.5px;}
+  th{background:#7B4FB1;color:#fff;padding:9px;text-align:left;}
+  td{padding:8px;border-bottom:1px solid #D8CFBE;}
+  tr:nth-child(even) td{background:#FBF7EF;}
+  .toc{background:#fff;border:1.5px solid #D8CFBE;border-radius:10px;
+       padding:12px 18px;margin:18px 0;}
+  .toc h3{margin-top:0;}
+  .toc a{color:#7B4FB1;text-decoration:none;font-weight:700;}
+  .toc a:hover{text-decoration:underline;}
+  .footer-note{margin-top:30px;padding:14px 18px;
+       background:linear-gradient(135deg,#F0E8F8,#fff);
+       border:1.5px solid #7B4FB1;border-radius:10px;font-size:12.5px;color:#5d6b74;}
+  @media print{
+    body{background:#fff;padding:15px;}
+    .step-box{break-inside:avoid;page-break-inside:avoid;}
+    h2{break-after:avoid;page-break-after:avoid;}
+  }
+</style>
+</head>
+<body>
+
+<h1>📖 專題系統 IPO 模組分析器 ─ 操作手冊</h1>
+<div class="meta">適用版本：v2.0 增強版　|　產出日期：${now}　|　專題類型：${escapeHtml(projectType)}</div>
+
+<div class="toc">
+  <h3>📑 目錄</h3>
+  <ol>
+    <li><a href="#sec1">系統概述與流程</a></li>
+    <li><a href="#sec2">步驟 1：輸入程式碼</a></li>
+    <li><a href="#sec3">步驟 2：AI 設定（API 金鑰）</a></li>
+    <li><a href="#sec4">步驟 3：執行 AI 分析</a></li>
+    <li><a href="#sec5">步驟 4：檢視 IPO 三模組結果</a></li>
+    <li><a href="#sec6">步驟 5：下載資源</a></li>
+    <li><a href="#sec7">常見問題（FAQ）</a></li>
+  </ol>
+</div>
+
+<h2 id="sec1">📦 一、系統概述與流程</h2>
+<p>本工具協助學生將一段現有的 Python 專題程式碼，依資訊系統的基本三段結構（<b>Input 輸入 → Process 處理 → Output 輸出</b>）自動分割，並透過 AI 產出每段的優化版本。</p>
+${ipoSvg}
+${flowSvg}
+
+<h2 id="sec2">📝 二、步驟 1：輸入程式碼</h2>
+<div class="step-box">
+<h3><span class="step-num">1</span>選擇輸入方式</h3>
+<p>本工具支援兩種輸入方式，可在「步驟 1」頁籤切換：</p>
+<table>
+  <tr><th>方式</th><th>說明</th><th>適用情境</th></tr>
+  <tr><td>📝 <b>直接貼上</b></td><td>把程式碼貼到文字框中</td><td>程式碼較短、在 Colab/網頁上抄寫</td></tr>
+  <tr><td>📁 <b>上傳檔案</b></td><td>選擇或拖放本機檔案</td><td>已有 <code>.py</code> 或 <code>.ipynb</code> 檔</td></tr>
+</table>
+<div class="tip"><b>💡 提示：</b>上傳 <code>.ipynb</code>（Colab 筆記本）時，系統會自動抽取所有 code cell 並依序合併，markdown 段落會自動忽略。</div>
+<p><b>沒有程式碼？</b>底部提供四個範例可一鍵載入：學生成績管理、健康監測、圖書借閱統計、電費試算。</p>
+</div>
+
+<h2 id="sec3">🔑 三、步驟 2：AI 設定（API 金鑰）</h2>
+<div class="step-box">
+<h3><span class="step-num">2</span>選擇 AI 供應商</h3>
+${aiCompareSvg}
+<p>進入「步驟 2」後，從四張卡片中選一個供應商：</p>
+<ul>
+  <li><b>🪶 Claude 內嵌</b>：免設定，但僅在 Claude.ai 對話內可用</li>
+  <li><b>✨ Gemini</b>：推薦初學者，有免費額度</li>
+  <li><b>🤖 ChatGPT</b>：穩定，按用量計費</li>
+  <li><b>🧠 Claude API</b>：分析品質高，按用量計費</li>
+</ul>
+
+<h3>📌 如何取得 API 金鑰</h3>
+<table>
+  <tr><th>供應商</th><th>取得網址</th><th>需要</th></tr>
+  <tr><td>Gemini</td><td><code>aistudio.google.com/apikey</code></td><td>Google 帳號</td></tr>
+  <tr><td>ChatGPT</td><td><code>platform.openai.com/api-keys</code></td><td>OpenAI 帳號 + 信用卡</td></tr>
+  <tr><td>Claude API</td><td><code>console.anthropic.com</code></td><td>Anthropic 帳號 + 信用卡</td></tr>
+</table>
+<div class="warn"><b>⚠ 重要：</b>取得 API 金鑰後請<b>妥善保管</b>，勿將含金鑰的程式檔上傳到 GitHub 公開倉庫。本工具的金鑰僅存於你本機瀏覽器的 localStorage，<b>不會傳到任何伺服器</b>。</div>
+
+<h3>🔌 測試連線</h3>
+<p>輸入金鑰後可按「<b>🔌 測試連線</b>」按鈕，系統會送一個極短測試訊息確認金鑰有效。若顯示「✅ 連線成功」即可進入下一步。</p>
+</div>
+
+<h2 id="sec4">🚀 四、步驟 3：執行 AI 分析</h2>
+<div class="step-box">
+<h3><span class="step-num">3</span>按下「開始 AI 分析」</h3>
+<p>系統會把你的程式碼加上分析指令（System Prompt）送給 AI，回應時間約 10–30 秒（依模型不同）。</p>
+<div class="tip"><b>💡 若 API 呼叫失敗：</b>可改用「<b>📋 改用手動複製貼上</b>」模式 ── 系統會產生完整提示語，複製後貼到 ChatGPT/Gemini/Claude 的網頁版，再把回應貼回本工具解析，<b>完全免金鑰</b>。</div>
+</div>
+
+<h2 id="sec5">👁 五、步驟 4：檢視 IPO 三模組結果</h2>
+<div class="step-box">
+<h3><span class="step-num">4</span>三段對照展示</h3>
+<p>AI 完成後會自動展開「步驟 4」卡片，呈現三張對照頁：</p>
+<table>
+  <tr><th>模組</th><th>原始版（紅）</th><th>優化版（藍/橘/綠）</th></tr>
+  <tr><td>📥 INPUT</td><td>變數直接賦值</td><td>ipywidgets 互動介面</td></tr>
+  <tr><td>⚙️ PROCESS</td><td>線性條件判斷</td><td>抽出 function + docstring</td></tr>
+  <tr><td>📊 OUTPUT</td><td>多行 print</td><td>matplotlib 視覺化圖表</td></tr>
+</table>
+<p>每張對照頁底部會顯示<b>模擬執行結果</b>，包含文字輸出與圖表預覽。每段程式碼右上角有<b>複製按鈕</b>，可直接貼到 Colab 執行。</p>
+</div>
+
+<h2 id="sec6">📥 六、步驟 5：下載資源</h2>
+<div class="step-box">
+<h3><span class="step-num">5</span>四種下載格式</h3>
+<table>
+  <tr><th>格式</th><th>用途</th><th>建議</th></tr>
+  <tr><td>📑 <b>PDF 簡報</b></td><td>3 頁對照頁，A4 直印</td><td>直接放入專題報告附錄</td></tr>
+  <tr><td>🖼️ <b>PNG 圖片</b></td><td>3 張高解析圖</td><td>貼入 PowerPoint 簡報</td></tr>
+  <tr><td>📓 <b>.ipynb 筆記本</b></td><td>Jupyter / Colab 格式</td><td>拖到 Google Colab 即可執行</td></tr>
+  <tr><td>📖 <b>操作手冊</b></td><td>本文件，圖文版說明</td><td>依步驟順序作業參考</td></tr>
+</table>
+<div class="tip"><b>💡 .ipynb 開啟方式：</b>下載後到 <a href="https://colab.research.google.com">colab.research.google.com</a> → 檔案 → 上傳筆記本，或直接把檔案拖到 Colab 視窗。</div>
+</div>
+
+<h2 id="sec7">❓ 七、常見問題（FAQ）</h2>
+
+<h3>Q1：金鑰會被偷走嗎？</h3>
+<p>不會。金鑰僅儲存於你個人瀏覽器的 localStorage（與儲存購物車、登入狀態同樣機制），<b>絕不會送到本工具開發者的伺服器</b>，僅在你按下分析時由你的瀏覽器<b>直接</b>送到對應 AI 供應商的 API。可勾掉「記住此金鑰」選項，這樣每次都需重新貼上。</p>
+
+<h3>Q2：執行時出現 CORS 或 Failed to fetch 錯誤？</h3>
+<p>表示瀏覽器無法直接呼叫該 API。請改試：(1) 切換到 Gemini（CORS 政策較寬鬆），或 (2) 使用「📋 改用手動複製貼上」模式。</p>
+
+<h3>Q3：可以分析 Python 以外的程式碼嗎？</h3>
+<p>本工具的優化建議（ipywidgets、matplotlib）<b>專為 Python/Colab 環境設計</b>，不適合 JavaScript、C++ 等其他語言。但分析「IPO 結構」的邏輯是通用的，AI 仍會嘗試分割。</p>
+
+<h3>Q4：Colab 跑優化版程式碼時中文變方框？</h3>
+<p>輸出模組程式碼開頭已含「中文字型起手式」（apt-get install fonts-noto-cjk）。若第一次執行仍是方框，請<b>重啟 runtime</b>（執行階段 → 重新啟動執行階段）後再執行一次。</p>
+
+<h3>Q5：手動模式的 AI 回應為什麼解析失敗？</h3>
+<p>請確認你<b>複製的範圍是從 <code>[META]</code> 開始到 <code>[/OUTPUT_CHART_VALUES]</code> 結束</b>的完整內容，並且不含 AI 的開場白或結尾的「希望這對你有幫助」之類的文字。</p>
+
+<div class="footer-note">
+<b>📚 關於本工具</b><br>
+專題系統 IPO 模組分析器 v2.0 增強版　|　
+適用對象：大一非資訊系專題實作課程　|　
+建議搭配：Google Colab 雲端 Jupyter 環境<br>
+本手冊由系統自動生成，內容隨你目前的分析結果動態調整。如需重新產出，請在「步驟 5」再次點選「下載操作手冊」。
+</div>
+
+</body>
+</html>`;
+}
+
+function downloadManual(){
+  const html = buildManualHtml();
+  const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const fname = `IPO分析器_操作手冊_${new Date().toISOString().slice(0,10)}.html`;
+  const a = document.createElement('a');
+  a.href = url; a.download = fname;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(url), 1000);
+  showToast('✅ 操作手冊已下載（HTML 格式，可用瀏覽器列印為 PDF）');
+  setStepDone(5, true);
+}
+
+// ============================================================
+//  ============ Help modal content ============
+// ============================================================
+const HELP_CONTENT = {
+  step1: {
+    title: '📝 步驟 1：輸入程式碼',
+    body: `
+      <h4>兩種方式擇一：</h4>
+      <ol>
+        <li><b>直接貼上</b>：把 Colab 或 IDE 中的 Python 程式碼複製貼到文字框</li>
+        <li><b>上傳檔案</b>：選擇或拖放本機檔案
+          <ul>
+            <li><code>.py</code> ─ 純 Python 檔（完整載入）</li>
+            <li><code>.ipynb</code> ─ Jupyter/Colab 筆記本（自動抽取 code cell）</li>
+            <li><code>.txt</code> ─ 純文字檔</li>
+          </ul>
+        </li>
+      </ol>
+      <p>沒程式碼？可載入「學生成績管理／健康監測／圖書借閱／電費試算」四種範例。</p>
+    `
+  },
+  step2: {
+    title: '🔑 步驟 2：AI 設定',
+    body: `
+      <h4>四種 AI 供應商：</h4>
+      <ul>
+        <li><b>🪶 Claude 內嵌</b>：免設定，僅 Claude.ai 內可用</li>
+        <li><b>✨ Gemini</b>★ 推薦：<a href="https://aistudio.google.com/apikey" target="_blank">免費取得金鑰</a></li>
+        <li><b>🤖 ChatGPT</b>：<a href="https://platform.openai.com/api-keys" target="_blank">OpenAI Platform</a></li>
+        <li><b>🧠 Claude API</b>：<a href="https://console.anthropic.com/" target="_blank">Anthropic Console</a></li>
+      </ul>
+      <h4>關於 API 金鑰</h4>
+      <p>金鑰只存於你本機瀏覽器，<b>不會上傳到任何伺服器</b>。建議勾選「記住此金鑰」省去每次輸入。</p>
+      <p>輸入後可按「<b>🔌 測試連線</b>」驗證金鑰有效。</p>
+    `
+  },
+  step3: {
+    title: '🚀 步驟 3：執行分析',
+    body: `
+      <p>按下「<b>開始 AI 分析</b>」即可。AI 會：</p>
+      <ol>
+        <li>辨識專題類型（如：學生成績管理系統）</li>
+        <li>分割 IPO 三模組</li>
+        <li>產出優化版程式碼</li>
+        <li>提供模擬執行結果</li>
+      </ol>
+      <p>耗時約 10-30 秒。若 API 失敗，可改用「<b>📋 手動複製貼上</b>」模式（免金鑰）。</p>
+    `
+  },
+  step4: {
+    title: '👁 步驟 4：檢視結果',
+    body: `
+      <p>三張對照頁分別顯示 INPUT / PROCESS / OUTPUT 三模組：</p>
+      <ul>
+        <li>左：❌ 原始程式碼（紅框）</li>
+        <li>右：✅ 優化版程式碼（藍/橘/綠框）</li>
+        <li>底：🎬 模擬執行結果（含圖表）</li>
+      </ul>
+      <p>每段程式碼右上方有「複製」按鈕，可直接貼到 Colab 執行。</p>
+    `
+  },
+  step5: {
+    title: '📥 步驟 5：下載資源',
+    body: `
+      <h4>四種下載格式：</h4>
+      <ul>
+        <li>📑 <b>PDF 簡報</b>：3 頁對照頁，A4 直印</li>
+        <li>🖼️ <b>PNG 圖片</b>：3 張，貼入 PowerPoint</li>
+        <li>📓 <b>.ipynb 筆記本</b>：拖到 Google Colab 開啟執行</li>
+        <li>📖 <b>操作手冊</b>：本工具完整圖文使用說明（HTML，可列印為 PDF）</li>
+      </ul>
+    `
+  }
+};
+
+function showHelp(key){
+  const c = HELP_CONTENT[key];
+  if (!c) return;
+  document.getElementById('helpTitle').textContent = c.title;
+  document.getElementById('helpBody').innerHTML = c.body;
+  document.getElementById('helpModal').classList.add('show');
+}
+function closeHelp(){
+  document.getElementById('helpModal').classList.remove('show');
+}
+
 </script>
 </body>
 </html>
